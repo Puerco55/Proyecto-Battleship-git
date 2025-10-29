@@ -24,7 +24,7 @@ public class Menu extends JFrame {
 	
 	public Menu() {
         
-        setTitle("Hundir la Flota 🚢");
+        setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(420, 420); 
         setLocationRelativeTo(null); 
