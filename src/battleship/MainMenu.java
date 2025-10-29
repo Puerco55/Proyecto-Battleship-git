@@ -16,17 +16,15 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-public class Menu extends JFrame {
+public class MainMenu extends JFrame {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	public Menu() {
+	public MainMenu() {
 
-        setTitle("Battleship");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("Hundir la Flota 🚢");
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setSize(420, 420); 
@@ -79,7 +77,6 @@ public class Menu extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Iniciar Juego");
                 dispose(); 
-                new Ajustes_Partida().setVisible(true); 
             }
         });
 
@@ -87,11 +84,7 @@ public class Menu extends JFrame {
         optionsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Muestra un cuadro de diálogo simple
-                JOptionPane.showMessageDialog(Menu.this, 
-                        "Las opciones aún no están implementadas.", 
-                        "Opciones", 
-                        JOptionPane.INFORMATION_MESSAGE);
+            	new MenuOpciones().setVisible(true);
             }
         });
         
