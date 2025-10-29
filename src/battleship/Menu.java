@@ -5,6 +5,8 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -12,7 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 public class Menu extends JFrame {
@@ -23,12 +24,22 @@ public class Menu extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
 	public Menu() {
-        
+
         setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setTitle("Hundir la Flota 🚢");
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setSize(420, 420); 
         setLocationRelativeTo(null); 
-        setResizable(false); 
+        setResizable(false);
+        
+        //Cerrar ventana
+        addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				confirmarSalida();
+			}
+		});
 
         // --- PANEL PRINCIPAL ---
         // Usamos un panel principal con BorderLayout para organizar los elementos.
@@ -43,18 +54,20 @@ public class Menu extends JFrame {
 
         // --- PANEL DE BOTONES ---
         // Un panel para los botones con GridLayout para que se apilen verticalmente.
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 0, 15)); // 3 filas, 1 columna, 15px de espacio vertical
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15)); // 3 filas, 1 columna, 15px de espacio vertical
         buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50)); // Margen para que no estén pegados a los bordes
         mainPanel.add(buttonPanel, BorderLayout.CENTER); // Añadir el panel de botones en el centro
 
         // --- CREACIÓN DE BOTONES ---
         JButton playButton = new JButton("Jugar");
         JButton optionsButton = new JButton("Opciones");
+        JButton statsButton = new JButton("Estadísticas");
         JButton exitButton = new JButton("Salir");
         
         // --- AÑADIR BOTONES AL PANEL ---
         buttonPanel.add(playButton);
         buttonPanel.add(optionsButton);
+        buttonPanel.add(statsButton);
         buttonPanel.add(exitButton);
 
         // --- FUNCIONALIDAD DE LOS BOTONES (ACTION LISTENERS) ---
@@ -81,13 +94,22 @@ public class Menu extends JFrame {
                         JOptionPane.INFORMATION_MESSAGE);
             }
         });
+        
+        // 3. Botón Estadísticas
+        statsButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Bases dou datoss
+			}
+		});
 
-        // 3. Botón Salir
+        // 4. Botón Salir
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Cierra la aplicación
-                System.exit(0);
+                confirmarSalida();
             }
         });
 
@@ -95,15 +117,18 @@ public class Menu extends JFrame {
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        // Es una buena práctica iniciar las aplicaciones Swing de esta manera.
-        // Asegura que la GUI se cree en el hilo de despacho de eventos (EDT).
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new Menu();
-            }
-        });
+    //Función de cierre de ventana
+    private void confirmarSalida() {
+        int opcion = JOptionPane.showConfirmDialog(
+                this,
+                "¿Deseas salir de la aplicación?",
+                "Confirmar salida",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (opcion == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
     }
 
 }
