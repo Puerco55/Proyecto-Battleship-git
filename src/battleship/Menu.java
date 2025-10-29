@@ -64,6 +64,7 @@ public class Menu extends JFrame {
         JButton statsButton = new JButton("Estadísticas");
         JButton exitButton = new JButton("Salir");
         
+        
         // --- AÑADIR BOTONES AL PANEL ---
         buttonPanel.add(playButton);
         buttonPanel.add(optionsButton);
@@ -74,12 +75,11 @@ public class Menu extends JFrame {
 
         // 1. Botón Jugar
         playButton.addActionListener(new ActionListener() {
-            @Override
+        	@Override
             public void actionPerformed(ActionEvent e) {
-                
                 System.out.println("Iniciar Juego");
-                
-                dispose(); // Cierra la ventana del menú
+                dispose(); 
+                new Ajustes_Partida().setVisible(true); 
             }
         });
 
@@ -116,7 +116,7 @@ public class Menu extends JFrame {
         // Hacemos visible la ventana al final, después de añadir todos los componentes.
         setVisible(true);
     }
-
+	
     //Función de cierre de ventana
     private void confirmarSalida() {
         int opcion = JOptionPane.showConfirmDialog(
