@@ -76,6 +76,8 @@ public class MainMenu extends JFrame {
         	@Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Iniciar Juego");
+                Ajustes_Partida ajustes = new Ajustes_Partida();
+                ajustes.setVisible(true);
                 dispose(); 
             }
         });
