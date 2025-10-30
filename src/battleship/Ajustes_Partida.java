@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -49,19 +51,39 @@ public class Ajustes_Partida extends JFrame {
         SpinnerNumberModel barcos3 = new SpinnerNumberModel(1, 1, 3, 1);
         SpinnerNumberModel superDisparo = new SpinnerNumberModel(0, 0, 1, 1);
         SpinnerNumberModel megaDisparo = new SpinnerNumberModel(0, 0, 1, 1);
-        
-        // Añadimos los selectores y nombres
+
+        // Crear los spinners y bloquear escritura manual
+        JSpinner spinnerBarcos1 = new JSpinner(barcos1);
+        ((JSpinner.DefaultEditor) spinnerBarcos1.getEditor()).getTextField().setEditable(false);
+
+        JSpinner spinnerBarcos2 = new JSpinner(barcos2);
+        ((JSpinner.DefaultEditor) spinnerBarcos2.getEditor()).getTextField().setEditable(false);
+
+        JSpinner spinnerBarcos3 = new JSpinner(barcos3);
+        ((JSpinner.DefaultEditor) spinnerBarcos3.getEditor()).getTextField().setEditable(false);
+
+        JSpinner spinnerSuper = new JSpinner(superDisparo);
+        ((JSpinner.DefaultEditor) spinnerSuper.getEditor()).getTextField().setEditable(false);
+
+        JSpinner spinnerMega = new JSpinner(megaDisparo);
+        ((JSpinner.DefaultEditor) spinnerMega.getEditor()).getTextField().setEditable(false);
+
+        // Añadimos los selectores y nombres 
         
         panelOpciones.add(new JLabel("Barcos de 1 de largo:"));
-        panelOpciones.add(new JSpinner(barcos1));
+        panelOpciones.add(spinnerBarcos1);
+
         panelOpciones.add(new JLabel("Barcos de 2 de largo:"));
-        panelOpciones.add(new JSpinner(barcos2));
+        panelOpciones.add(spinnerBarcos2);
+
         panelOpciones.add(new JLabel("Barcos de 3 de largo:"));
-        panelOpciones.add(new JSpinner(barcos3));
-        panelOpciones.add(new JLabel("Super Disparo (+):"));
-        panelOpciones.add(new JSpinner(superDisparo));
+        panelOpciones.add(spinnerBarcos3);
+
+        panelOpciones.add(new JLabel("Super Disparo (+) :"));
+        panelOpciones.add(spinnerSuper);
+
         panelOpciones.add(new JLabel("Mega Disparo (3x3):"));
-        panelOpciones.add(new JSpinner(megaDisparo));
+        panelOpciones.add(spinnerMega);
         
         // Centramos
         
@@ -69,10 +91,23 @@ public class Ajustes_Partida extends JFrame {
         // Creamos boton para continuar
         
         JButton botonCotinuar = new JButton("Continuar");
+        JButton botonAtras = new JButton("Atras");
         JPanel panelBoton = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelBoton.add(botonAtras);
         panelBoton.add(botonCotinuar);
         add(panelBoton, BorderLayout.SOUTH);
-        // Guardamos 
+        
+        // Creamos el boton para ir atras
+        botonAtras.addActionListener(new ActionListener() {
+        	@Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Atras");
+                MainMenu mainMenu = new MainMenu();
+                mainMenu.setVisible(true);
+                dispose(); 
+            }
+        });
+        // Guardamos todo los valores puestos
         botonCotinuar.addActionListener(e -> {
         	
         	// Obtenemos valores al clickar en el boton de continuar
