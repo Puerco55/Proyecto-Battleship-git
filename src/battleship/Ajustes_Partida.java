@@ -74,7 +74,7 @@ public class Ajustes_Partida extends JFrame {
         JSpinner spinnerMega = new JSpinner(megaDisparo);
         ((JSpinner.DefaultEditor) spinnerMega.getEditor()).getTextField().setEditable(false);
 
-        // Añadimos los selectores y nombres 
+        // Añadimos los selectores y nombres s
         panelOpciones.add(new JLabel("Barcos de 1 de largo:"));
         panelOpciones.add(spinnerBarcos1);
 
@@ -124,11 +124,11 @@ public class Ajustes_Partida extends JFrame {
         	// Obtenemos valores al clickar en el boton de continuar
         	
             int barco1 = (int) barcos1.getValue();
-            Ajustes_Partida.barcos1= barco1; // Asignar el valor seleccionado a la variable estática barcos1
+            Ajustes_Partida.barcos1 = (Integer) spinnerBarcos1.getValue(); // Asignar el valor seleccionado a la variable estática barcos1
             int barco2 = (int) barcos2.getValue();
-            Ajustes_Partida.barcos2= barco2; // Asignar el valor seleccionado a la variable estática barcos2
+            Ajustes_Partida.barcos2 = (Integer) spinnerBarcos2.getValue(); // Asignar el valor seleccionado a la variable estática barcos2
             int barco3 =(int) barcos3.getValue();
-            Ajustes_Partida.barcos3= barco3; // Asignar el valor seleccionado a la variable estática barcos3
+            Ajustes_Partida.barcos3 = (Integer) spinnerBarcos3.getValue(); // Asignar el valor seleccionado a la variable estática barcos3
             int superdisparo = (int) superDisparo.getValue();
             int megadisparo = (int) megaDisparo.getValue();
 
@@ -137,11 +137,12 @@ public class Ajustes_Partida extends JFrame {
             System.out.println("SuperDisparo: " + superdisparo + ", MegaDisparo: " + megadisparo);
            
             dispose();
+            
         });
     
     }
 	
-	// Getters para obtener las cantidades seleccionadas
+	// Getters para obtener las cantidades de barcos
 	
 	public static int getBarcos1_cantidad() {
 		return (int) barcos1;
