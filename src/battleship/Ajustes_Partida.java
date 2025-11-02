@@ -101,6 +101,9 @@ public class Ajustes_Partida extends JFrame {
         panelBoton.add(botonCotinuar);
         add(panelBoton, BorderLayout.SOUTH);
         Map<Integer, Integer> configBarcos = new HashMap<>();
+        configBarcos.put(1, (int) spinnerBarcos1.getValue());
+        configBarcos.put(2, (int) spinnerBarcos2.getValue());
+        configBarcos.put(3, (int) spinnerBarcos3.getValue());
         Jugador1_Barcos jugador1barcos = new Jugador1_Barcos(configBarcos);
         jugador1barcos.setVisible(true);
         dispose(); 

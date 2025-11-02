@@ -100,16 +100,6 @@ public class Jugador1_Barcos extends JFrame{
 
         setVisible(true);
     }
-	
-	// Método para obtener la configuración de barcos desde Ajustes_Partida
-	public Map<Integer, Integer> getConfigBarcos() {
-	    Map<Integer, Integer> config = new HashMap<>();
-	    config.put(1, (Integer) Ajustes_Partida.getBarcos1_cantidad()); // Cantidad de barcos de tamaño 1
-	    config.put(2, (Integer) Ajustes_Partida.getBarcos2_cantidad()); // Cantidad de barcos de tamaño 2
-	    config.put(3, (Integer) Ajustes_Partida.getBarcos3_cantidad()); // Cantidad de barcos de tamaño 3
-	    
-	    return config;
-	}
 
 	// Método principal para probar la clase (si quereis se puede descomentar para probar)
 	
