@@ -97,6 +97,7 @@ public class Jugador1_Barcos extends JFrame{
         add(panelDerecho, BorderLayout.EAST);
 
         setVisible(true);
+        
     }
 
 	// Testing

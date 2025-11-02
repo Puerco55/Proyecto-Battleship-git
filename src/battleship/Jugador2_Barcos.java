@@ -124,5 +124,6 @@ public class Jugador2_Barcos extends JFrame{
 		configBarcos.put(3, 2); // 2 barcos de tamaño 3
 
 		new Jugador2_Barcos(configBarcos);
+		
 	}
 }
