@@ -1,13 +1,16 @@
 package battleship;
 
-import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
+import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public class MenuOpciones extends JFrame {
 	
@@ -23,20 +26,33 @@ public class MenuOpciones extends JFrame {
         setLocationRelativeTo(null); 
         setResizable(false);
         
-        // --- PANEL PRINCIPAL ---
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        setContentPane(mainPanel);
+        //Panel princ
+        JPanel mainPanel = new JPanel();
 
-        // --- PANEL DE BOTONES ---
+        //Panel botones
         JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         mainPanel.add(panel);
         
-        JLabel calcio = new JLabel("algo");
-        JButton sodio = new JButton("algo2");
+        //Para determinar cantidad d elementos q se muestran pa q el scroll funce
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
         
-        panel.add(calcio);
-        panel.add(sodio);
+        //Generador d botones d muestra sobrepasando el limite pa comprobar scroll
+        for (int i = 0; i < 20; i++) {
+            gbc.gridx = 0;
+            gbc.gridy = i;
+            panel.add(new JLabel("algo"), gbc);
+
+            gbc.gridx = 1;
+            JButton boton = new JButton("algo2");
+            boton.setPreferredSize(new Dimension(100, 30));
+            panel.add(boton, gbc);
+        }
+        
+        JScrollPane scrolPrinc = new JScrollPane(mainPanel);
+        add(scrolPrinc);
 
 	}
 

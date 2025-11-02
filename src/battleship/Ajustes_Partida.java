@@ -45,7 +45,6 @@ public class Ajustes_Partida extends JFrame {
         panelOpciones.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
         
         // Creamos el selector de los barcos y disparos
-        
         SpinnerNumberModel barcos1 = new SpinnerNumberModel(1, 1, 3, 1);
         SpinnerNumberModel barcos2 = new SpinnerNumberModel(1, 1, 3, 1);
         SpinnerNumberModel barcos3 = new SpinnerNumberModel(1, 1, 3, 1);
@@ -69,7 +68,6 @@ public class Ajustes_Partida extends JFrame {
         ((JSpinner.DefaultEditor) spinnerMega.getEditor()).getTextField().setEditable(false);
 
         // Añadimos los selectores y nombres 
-        
         panelOpciones.add(new JLabel("Barcos de 1 de largo:"));
         panelOpciones.add(spinnerBarcos1);
 
@@ -86,10 +84,9 @@ public class Ajustes_Partida extends JFrame {
         panelOpciones.add(spinnerMega);
         
         // Centramos
-        
         add(panelOpciones, BorderLayout.CENTER);
-        // Creamos boton para continuar
         
+        // Creamos boton para continuar
         JButton botonCotinuar = new JButton("Continuar");
         JButton botonAtras = new JButton("Atras");
         JPanel panelBoton = new JPanel(new FlowLayout(FlowLayout.RIGHT));
