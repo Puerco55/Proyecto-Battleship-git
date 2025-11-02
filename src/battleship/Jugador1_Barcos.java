@@ -99,6 +99,7 @@ public class Jugador1_Barcos extends JFrame{
         add(panelDerecho, BorderLayout.EAST); // Colocar el panel de controles a la derecha
 
         setVisible(true);
+        //EXITO
     }
 
 	// Método principal para probar la clase (si quereis se puede descomentar para probar)
