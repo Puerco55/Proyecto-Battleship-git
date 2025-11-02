@@ -126,6 +126,5 @@ public class MainMenu extends JFrame {
         }
     }
 
-    //EXITO EN LA RECUPERACION
-    //123
+   
 }

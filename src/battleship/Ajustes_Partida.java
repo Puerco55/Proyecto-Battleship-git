@@ -137,7 +137,7 @@ public class Ajustes_Partida extends JFrame {
             System.out.println("SuperDisparo: " + superdisparo + ", MegaDisparo: " + megadisparo);
            
             dispose();
-            //EXITO
+            
         });
     
     }
