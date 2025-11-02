@@ -43,10 +43,10 @@ public class MenuOpciones extends JFrame {
         for (int i = 0; i < 20; i++) {
             gbc.gridx = 0;
             gbc.gridy = i;
-            panel.add(new JLabel("algo"), gbc);
+            panel.add(new JLabel("lorem"), gbc);
 
             gbc.gridx = 1;
-            JButton boton = new JButton("algo2");
+            JButton boton = new JButton("ipsum");
             boton.setPreferredSize(new Dimension(100, 30));
             panel.add(boton, gbc);
         }
