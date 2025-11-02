@@ -54,6 +54,7 @@ public class MenuOpciones extends JFrame {
         JScrollPane scrolPrinc = new JScrollPane(mainPanel);
         add(scrolPrinc);
         
+        //EXITO
 
 	}
 
