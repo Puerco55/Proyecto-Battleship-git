@@ -99,7 +99,7 @@ public class Jugador1_Barcos extends JFrame{
         setVisible(true);
     }
 
-	// Testingg
+	// Testing
 	
 //	public static void main(String[] args) {
 //		Map<Integer, Integer> configBarcos = new HashMap<>();
