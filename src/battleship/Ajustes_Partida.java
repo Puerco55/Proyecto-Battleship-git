@@ -129,7 +129,7 @@ public class Ajustes_Partida extends JFrame {
            
             dispose();
         });
-
+    
     }
 	
 	// Getters para obtener las cantidades seleccionadas
