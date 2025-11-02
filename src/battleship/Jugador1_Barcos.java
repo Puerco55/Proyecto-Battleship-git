@@ -28,7 +28,7 @@ public class Jugador1_Barcos extends JFrame{
 
 	public Jugador1_Barcos(Map<Integer, Integer> configBarcos) {
 		
-		// conf de la ventana
+		// conf de la ventanas
         setTitle("Hundir la Flota");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(420, 420); 

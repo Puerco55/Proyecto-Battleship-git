@@ -74,7 +74,7 @@ public class Ajustes_Partida extends JFrame {
         JSpinner spinnerMega = new JSpinner(megaDisparo);
         ((JSpinner.DefaultEditor) spinnerMega.getEditor()).getTextField().setEditable(false);
 
-        // Añadimos los selectores y nombres 
+        // Añadimos los selectores y nombres s
         panelOpciones.add(new JLabel("Barcos de 1 de largo:"));
         panelOpciones.add(spinnerBarcos1);
 
