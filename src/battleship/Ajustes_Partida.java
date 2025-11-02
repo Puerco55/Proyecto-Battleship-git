@@ -28,7 +28,7 @@ public class Ajustes_Partida extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	// Variables para guardar los valores seleccionados
+	// Variables para guardar los valores seleccionadoss
 	public static Integer barcos1;
 	public static Integer barcos2;
 	public static Integer barcos3;
