@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -98,6 +100,10 @@ public class Ajustes_Partida extends JFrame {
         panelBoton.add(botonAtras);
         panelBoton.add(botonCotinuar);
         add(panelBoton, BorderLayout.SOUTH);
+        Map<Integer, Integer> configBarcos = new HashMap<>();
+        Jugador1_Barcos jugador1barcos = new Jugador1_Barcos(configBarcos);
+        jugador1barcos.setVisible(true);
+        dispose(); 
         
         // Creamos el boton para ir atras
         botonAtras.addActionListener(new ActionListener() {

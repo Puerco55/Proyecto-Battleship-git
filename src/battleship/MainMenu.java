@@ -127,6 +127,4 @@ public class MainMenu extends JFrame {
     }
 
     
-    // Comentario test
-    // Iker puto calvo te invito a jugar
 }

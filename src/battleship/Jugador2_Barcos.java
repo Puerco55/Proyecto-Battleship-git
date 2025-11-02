@@ -116,13 +116,13 @@ public class Jugador2_Barcos extends JFrame{
 
 	// Método principal para probar la clase (si quereis se puede descomentar para probar)
 	
-//	public static void main(String[] args) {
-//		// Ejemplo de configuración de barcos
-//		Map<Integer, Integer> configBarcos = new HashMap<>();
-//		configBarcos.put(1, 4); // 4 barcos de tamaño 1
-//		configBarcos.put(2, 3); // 3 barcos de tamaño 2
-//		configBarcos.put(3, 2); // 2 barcos de tamaño 3
-//
-//		new Jugador2_Barcos(configBarcos);
-//	}
+	public static void main(String[] args) {
+		// Ejemplo de configuración de barcos
+		Map<Integer, Integer> configBarcos = new HashMap<>();
+		configBarcos.put(1, 4); // 4 barcos de tamaño 1
+		configBarcos.put(2, 3); // 3 barcos de tamaño 2
+		configBarcos.put(3, 2); // 2 barcos de tamaño 3
+
+		new Jugador2_Barcos(configBarcos);
+	}
 }
