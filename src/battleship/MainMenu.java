@@ -40,7 +40,7 @@ public class MainMenu extends JFrame {
 		});
 
         // --- PANEL PRINCIPAL ---
-        // Usamos un panel principal con BorderLayout para organizar los elementos.
+        // Organizar los elementos.
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20)); // Añade un margen interior
         setContentPane(mainPanel);
@@ -48,10 +48,10 @@ public class MainMenu extends JFrame {
         // --- TÍTULO DEL JUEGO ---
         JLabel titleLabel = new JLabel("Hundir la Flota", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 36)); // Fuente grande y en negrita
-        mainPanel.add(titleLabel, BorderLayout.NORTH); // Añadir el título en la parte superior
-
+        mainPanel.add(titleLabel, BorderLayout.NORTH); // Añadir el título 
+        
         // --- PANEL DE BOTONES ---
-        // Un panel para los botones con GridLayout para que se apilen verticalmente.
+        // Un panel para los botones
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15)); // 3 filas, 1 columna, 15px de espacio vertical
         buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50)); // Margen para que no estén pegados a los bordes
         mainPanel.add(buttonPanel, BorderLayout.CENTER); // Añadir el panel de botones en el centro
@@ -69,7 +69,6 @@ public class MainMenu extends JFrame {
         buttonPanel.add(statsButton);
         buttonPanel.add(exitButton);
 
-        // --- FUNCIONALIDAD DE LOS BOTONES (ACTION LISTENERS) ---
 
         // 1. Botón Jugar
         playButton.addActionListener(new ActionListener() {
@@ -108,7 +107,7 @@ public class MainMenu extends JFrame {
             }
         });
 
-        // Hacemos visible la ventana al final, después de añadir todos los componentes.
+        // Hacer visible
         setVisible(true);
     }
 	

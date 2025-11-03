@@ -139,3 +139,4 @@ public class Jugador2_Barcos extends JFrame{
 //		
 //	}
 }
+
