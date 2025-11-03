@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -95,8 +97,19 @@ public class Jugador1_Barcos extends JFrame{
         panelDerecho.add(guardarButton);
 
         add(panelDerecho, BorderLayout.EAST);
-
         setVisible(true);
+        guardarButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Para pasar al siguiente jugador
+		        Jugador2_Barcos barcosjug2 = new Jugador2_Barcos(configBarcos);
+		        barcosjug2.setVisible(true);
+		        
+		        dispose();
+				
+			}
+		});
         
     }
 
