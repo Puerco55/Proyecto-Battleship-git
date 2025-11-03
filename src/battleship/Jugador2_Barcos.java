@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,10 +100,20 @@ public class Jugador2_Barcos extends JFrame{
         // Botón de Guardar
         guardarButton = new JButton("GUARDAR");
         panelDerecho.add(guardarButton);
-
         add(panelDerecho, BorderLayout.EAST); // Colocar el panel de controles a la derecha
-
         setVisible(true);
+        guardarButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Para saltar a la pantalla de inicio
+				PantallaInicioJuego inicioJuego = new PantallaInicioJuego();
+		        inicioJuego.setVisible(true);
+		        
+		        dispose();
+			}
+		});
+        
     }
 	
 	// Método para obtener la configuración de barcos desde Ajustes_Partida
@@ -114,16 +126,16 @@ public class Jugador2_Barcos extends JFrame{
 	    return config;
 	}
 
-	// Método principal para probar la clase (si quereis se puede descomentar para probar)
-	
-	public static void main(String[] args) {
-		// Ejemplo de configuración de barcos
-		Map<Integer, Integer> configBarcos = new HashMap<>();
-		configBarcos.put(1, 4); // 4 barcos de tamaño 1
-		configBarcos.put(2, 3); // 3 barcos de tamaño 2
-		configBarcos.put(3, 2); // 2 barcos de tamaño 3
-
-		new Jugador2_Barcos(configBarcos);
-		
-	}
+//	// Método principal para probar la clase (si quereis se puede descomentar para probar)
+//	
+//	public static void main(String[] args) {
+//		// Ejemplo de configuración de barcos
+//		Map<Integer, Integer> configBarcos = new HashMap<>();
+//		configBarcos.put(1, 4); // 4 barcos de tamaño 1
+//		configBarcos.put(2, 3); // 3 barcos de tamaño 2
+//		configBarcos.put(3, 2); // 2 barcos de tamaño 3
+//
+//		new Jugador2_Barcos(configBarcos);
+//		
+//	}
 }
