@@ -55,7 +55,7 @@ public class MainMenu extends JFrame {
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15)); // 3 filas, 1 columna, 15px de espacio vertical
         buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50)); // Margen para que no estén pegados a los bordes
         mainPanel.add(buttonPanel, BorderLayout.CENTER); // Añadir el panel de botones en el centro
-
+        
         // --- CREACIÓN DE BOTONES ---
         JButton playButton = new JButton("Jugar");
         JButton optionsButton = new JButton("Opciones");
@@ -86,6 +86,7 @@ public class MainMenu extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
             	new MenuOpciones().setVisible(true);
+            	
             }
         });
         

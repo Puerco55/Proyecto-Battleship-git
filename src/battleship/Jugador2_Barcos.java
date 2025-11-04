@@ -23,7 +23,7 @@ public class Jugador2_Barcos extends JFrame{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1697287710791087526L;
+	private static final long serialVersionUID = 1L;
 
 	// Componentes
     private JButton[][] celdas = new JButton[10][10];
