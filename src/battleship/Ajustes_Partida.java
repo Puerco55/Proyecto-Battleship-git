@@ -142,15 +142,4 @@ public class Ajustes_Partida extends JFrame {
     
     }
 	
-	// Getters para obtener las cantidades de barcos
-	
-	public static int getBarcos1_cantidad() {
-		return (int) barcos1;
-	}
-	public static int getBarcos2_cantidad() {
-		return (int) barcos2;
-	}
-	public static int getBarcos3_cantidad() {
-		return (int) barcos3;
-	}
 }
