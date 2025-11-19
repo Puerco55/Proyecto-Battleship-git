@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -27,23 +28,32 @@ public class ColocarBarcos extends JFrame {
 	private JRadioButton orientacionHorizontal;
 	private JRadioButton orientacionVertical;
 	private JButton guardarButton;
+	private int barcoSeleccionado = -1;
+	private Map<Integer, Integer> barcosDisponibles;
+	private boolean[][] tablero = new boolean[10][10];
+
+	// Labels de disponibilidad
+	private Map<Integer, JLabel> labelsDisponibilidad = new HashMap<>();
 
 	public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, Runnable onGuardar) {
 
-		// Configuracion de la ventana
+		// Clonamos el map para que cada jugador tenga el suyo
+		this.barcosDisponibles = new HashMap<>(configBarcos);
+
+		// Configuración de la ventana
 		setTitle("Hundir la Flota");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(420, 420);
 		setLocationRelativeTo(null);
 		setResizable(false);
 
-		// Panel superior con el titulo
+		// Panel superior
 		JPanel panelSuperior = new JPanel();
 		panelSuperior.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
 		panelSuperior.add(new JLabel("Coloca tus barcos, Jugador " + numeroJugador));
 		add(panelSuperior, BorderLayout.NORTH);
 
-		// Panel central con la cuadricula
+		// Panel cuadricula
 		JPanel panelCuadricula = new JPanel(new GridLayout(10, 10));
 		panelCuadricula.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		for (int fila = 0; fila < 10; fila++) {
@@ -51,34 +61,43 @@ public class ColocarBarcos extends JFrame {
 				JButton celda = new JButton();
 				celda.setBackground(Color.CYAN.darker());
 				celdas[fila][col] = celda;
+
+				int f = fila, c = col;
+				celda.addActionListener(e -> colocarBarco(f, c));
+
 				panelCuadricula.add(celda);
 			}
 		}
 		add(panelCuadricula, BorderLayout.CENTER);
 
-		// Panel derecho con los controles
+		// Panel derecho
 		JPanel panelDerecho = new JPanel();
 		panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout.Y_AXIS));
 		panelDerecho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 20));
 
-		// Seleccion de tipo de barco
 		panelDerecho.add(new JLabel("1. Elige un barco:"));
 		ButtonGroup grupoBarcos = new ButtonGroup();
 
+		// Crear botones de barcos + labels de disponibilidad
 		configBarcos.forEach((tamano, cantidad) -> {
 			String nombreBarco = "Barco de " + tamano;
 			JRadioButton radioBarco = new JRadioButton(nombreBarco);
 			grupoBarcos.add(radioBarco);
 			panelDerecho.add(radioBarco);
 
+			radioBarco.addActionListener(e -> barcoSeleccionado = tamano);
+
 			JLabel cantidadLabel = new JLabel("Disponibles: " + cantidad);
 			cantidadLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 5, 0));
 			panelDerecho.add(cantidadLabel);
+
+			// Guardamos el label asociado al tamaño
+			labelsDisponibilidad.put(tamano, cantidadLabel);
 		});
 
 		panelDerecho.add(Box.createRigidArea(new Dimension(0, 20)));
 
-		// Seleccion de orientacion
+		// Orientación
 		panelDerecho.add(new JLabel("2. Elige la orientación:"));
 		ButtonGroup grupoOrientacion = new ButtonGroup();
 		orientacionHorizontal = new JRadioButton("Horizontal", true);
@@ -90,17 +109,15 @@ public class ColocarBarcos extends JFrame {
 
 		panelDerecho.add(Box.createVerticalGlue());
 
-		// Boton de Guardar
+		// Botón guardar
 		guardarButton = new JButton("GUARDAR");
 		panelDerecho.add(guardarButton);
 
 		add(panelDerecho, BorderLayout.EAST);
 
-		// Listener para el boton de guardar
 		guardarButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// Aqui hay que asegurarse de las posiciones y guardarlas para la partida
 				System.out.println("Guardando configuración del Jugador " + numeroJugador);
 
 				dispose();
@@ -113,4 +130,62 @@ public class ColocarBarcos extends JFrame {
 
 		setVisible(true);
 	}
+	// Colocacion de Barcos
+	private void colocarBarco(int fila, int col) {
+
+		if (barcoSeleccionado == -1) {
+			System.out.println("Selecciona un barco primero.");
+			return;
+		}
+
+		if (barcosDisponibles.get(barcoSeleccionado) == 0) {
+			System.out.println("No quedan barcos de tamaño " + barcoSeleccionado);
+			return;
+		}
+
+		boolean horizontal = orientacionHorizontal.isSelected();
+
+		// Verificar que cabe
+		if (horizontal) {
+			if (col + barcoSeleccionado > 10) {
+				System.out.println("No cabe horizontalmente.");
+				return;
+			}
+		} else {
+			if (fila + barcoSeleccionado > 10) {
+				System.out.println("No cabe verticalmente.");
+				return;
+			}
+		}
+
+		// Para que los barcos no se solapen
+		for (int i = 0; i < barcoSeleccionado; i++) {
+			int f = fila + (horizontal ? 0 : i);
+			int c = col + (horizontal ? i : 0);
+			if (tablero[f][c]) {
+				System.out.println("Ya hay un barco en esa posición.");
+				return;
+			}
+		}
+
+		// Colocar barco
+		for (int i = 0; i < barcoSeleccionado; i++) {
+			int f = fila + (horizontal ? 0 : i);
+			int c = col + (horizontal ? i : 0);
+
+			tablero[f][c] = true;
+			celdas[f][c].setBackground(Color.GRAY);
+		}
+
+		// Reducir disponibilidad
+		int nuevaCantidad = barcosDisponibles.get(barcoSeleccionado) - 1;
+		barcosDisponibles.put(barcoSeleccionado, nuevaCantidad);
+
+		// Actualizar disponibilidad
+		JLabel label = labelsDisponibilidad.get(barcoSeleccionado);
+		label.setText("Disponibles: " + nuevaCantidad);
+
+		System.out.println("Barco de tamaño " + barcoSeleccionado + " colocado.");
+	}
 }
+
