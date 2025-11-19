@@ -22,7 +22,7 @@ public class Ajustes_Partida extends JFrame {
 	// Componentes de la interfaz
 	private JSpinner[] spinners;
 	private JButton guardarButton;
-	private String[] nombresBarcos = { "Barco de 5", "Barco de 4", "Barco de 3", "Barco de 2" };
+	private String[] nombresBarcos = { "Barco de 5", "Barco de 4", "Barco de 3", "Barco de 2", "Super Disparo", "Mega Disparo"};
 	private int[] tamanosBarcos = { 5, 4, 3, 2 };
 
 	public Ajustes_Partida() {
@@ -43,9 +43,24 @@ public class Ajustes_Partida extends JFrame {
 			add(new JLabel(nombresBarcos[i]), gbc);
 
 			gbc.gridx = 1;
-			spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 5, 1));
+			
+			if (i == 0) {
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 2, 1)); // Barcos de 5 (min = 0, max = 2)
+			} else if (i == 1) {
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 3, 1)); // Barcos de 4 (min = 0, max = 3)
+			} else if (i == 2) {
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 4, 1)); // Barcos de 3 (min = 0, max = 4)
+			} else if (i == 3) {
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 5, 1)); // Barcos de 2 (min = 0, max = 5)
+			} else if (i == 4) {
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 1, 1));
+			} else if (i == 5) {
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 1, 1));
+			}
+			
 			spinners[i].setPreferredSize(new Dimension(50, 25));
 			add(spinners[i], gbc);
+			
 		}
 
 		// Boton para guardar la configuracion
