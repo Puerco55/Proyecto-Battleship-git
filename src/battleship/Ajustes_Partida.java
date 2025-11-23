@@ -45,11 +45,11 @@ public class Ajustes_Partida extends JFrame {
 			gbc.gridx = 1;
 			
 			if (i == 0) {
-				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 2, 1)); // Barcos de 5 (min = 0, max = 2)
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 1, 1)); // Barcos de 5 (min = 0, max = 1)
 			} else if (i == 1) {
-				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 3, 1)); // Barcos de 4 (min = 0, max = 3)
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 2, 1)); // Barcos de 4 (min = 0, max = 2)
 			} else if (i == 2) {
-				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 4, 1)); // Barcos de 3 (min = 0, max = 4)
+				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 2, 1)); // Barcos de 3 (min = 0, max = 2)
 			} else if (i == 3) {
 				spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 5, 1)); // Barcos de 2 (min = 0, max = 5)
 			} else if (i == 4) {
