@@ -15,7 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-public class Ajustes_Partida extends JFrame {
+public class AjustesPartida extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
@@ -25,7 +25,7 @@ public class Ajustes_Partida extends JFrame {
 	private String[] nombresBarcos = { "Barco de 5", "Barco de 4", "Barco de 3", "Barco de 2", "Super Disparo", "Mega Disparo"};
 	private int[] tamanosBarcos = { 5, 4, 3, 2 };
 
-	public Ajustes_Partida() {
+	public AjustesPartida() {
 		// Configuracion de la ventana
 		setTitle("Ajustes de la Partida");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
