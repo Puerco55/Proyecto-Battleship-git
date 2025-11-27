@@ -90,14 +90,17 @@ public class MainMenu extends JFrame {
             }
         });
         
-        // 3. Botón Estadísticas
+     // 3. Botón Estadísticas
         statsButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Bases dou datoss
-			}
-		});
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Creamos la ventana de estadísticas
+                MenuEstadisticas ventanaStats = new MenuEstadisticas();
+                
+                // La hacemos visible
+                ventanaStats.setVisible(true);
+            }
+        });
 
         // 4. Botón Salir
         exitButton.addActionListener(new ActionListener() {
