@@ -9,7 +9,8 @@ public class Main {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new MainMenu();
+                MainMenu menu = new MainMenu();
+                menu.setVisible(true);
                 
                       
          
