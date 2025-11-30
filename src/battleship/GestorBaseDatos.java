@@ -22,14 +22,14 @@ public class GestorBaseDatos {
     }
 
     
-     //Crea la tabla de estadísticas si no existe.
-     
+    //Crea la tabla de estadísticas si no existe.
     public static void inicializarTablas() {
         String sql = "CREATE TABLE IF NOT EXISTS partidas ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " fecha TEXT NOT NULL,"
                 + " ganador TEXT NOT NULL," // Jugador uno o jugador dos
-                + " turnos INTEGER NOT NULL"
+                + " turnos INTEGER NOT NULL,"
+                + " barcos_hundidos INTEGER NOT NULL"
                 + ");";
 
         try (Connection conn = conectar();
@@ -40,4 +40,18 @@ public class GestorBaseDatos {
             System.out.println("Error al crear tablas: " + e.getMessage());
         }
     }
+    
+    //En caso d no crear la columna barco hundidos
+    public static void actualizarTabla() {
+        String sql = "ALTER TABLE partidas ADD COLUMN barcos_hundidos INTEGER DEFAULT 0";
+
+        try (Connection conn = conectar();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+            System.out.println("Columna barcos_hundidos añadida.");
+        } catch (SQLException e) {
+            System.out.println("Aviso: " + e.getMessage());
+        }
+    }
+
 }

@@ -7,13 +7,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class EstadisticasDAO {
     
      //Guarda el resultado de una partida al finalizar
 	
-    public void guardarPartida(String ganador, int turnos) {
-        String sql = "INSERT INTO partidas(fecha, ganador, turnos) VALUES(?,?,?)";
+    public void guardarPartida(String ganador, int turnos, int barcosHundidos) {
+        String sql = "INSERT INTO partidas(fecha, ganador, turnos, barcosHundidos) VALUES(?,?,?,?)";
 
         try (Connection conn = GestorBaseDatos.conectar();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -23,18 +26,44 @@ public class EstadisticasDAO {
             pstmt.setString(1, fechaActual);
             pstmt.setString(2, ganador);
             pstmt.setInt(3, turnos);
+            pstmt.setInt(4, barcosHundidos);
             pstmt.executeUpdate();
             
             System.out.println("Partida guardada en la base de datos.");
             
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error al guardar partida: " + e.getMessage());
         }
     }
+    
+    //Metodo obtener historial en modo lista para la tabla
+    public List<Partida> obtenerHistorial() {
+        List<Partida> historial = new ArrayList<>();
 
-    /**
-     * Obtiene un objeto con los datos resumidos.
-     */
+        String sql = "SELECT fecha, ganador, turnos, barcos_hundidos FROM partidas ORDER BY id DESC";
+
+        try (Connection conn = GestorBaseDatos.conectar();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                historial.add(new Partida(
+                        rs.getString("fecha"),
+                        rs.getString("ganador"),
+                        rs.getInt("turnos"),
+                        rs.getInt("barcos_hundidos")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al obtener historial: " + e.getMessage());
+        }
+
+        return historial;
+    }
+
+    //Obtiene un objeto con los datos resumidos.
+    //Ya no se usa pero lo dejo
     public ResumenEstadisticas obtenerResumen() {
         String sqlTotal = "SELECT COUNT(*) FROM partidas";
         String sqlVictorias = "SELECT COUNT(*) FROM partidas WHERE ganador = 'JUGADOR'";
@@ -76,4 +105,5 @@ public class EstadisticasDAO {
             this.derrotas = d;
         }
     }
+    
 }
