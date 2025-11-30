@@ -14,7 +14,7 @@ import javax.swing.SwingConstants;
 public class PantallaInicioJuego extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
-	public PantallaInicioJuego() {
+	public PantallaInicioJuego(int superDisparos, int megaDisparos) {
 		setTitle("Hundir la Flota 🚢");
        setDefaultCloseOperation(EXIT_ON_CLOSE);
        setSize(420, 420);
@@ -38,8 +38,10 @@ public class PantallaInicioJuego extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// Ventana con inicio del juego
+				VentanaJuego ventanaJuego = new VentanaJuego(1, superDisparos, megaDisparos);
+				ventanaJuego.setVisible(true);
 				
+				dispose();
 			}
 		});
        panel.add(mensaje, BorderLayout.CENTER );

@@ -87,6 +87,9 @@ public class AjustesPartida extends JFrame {
 						configBarcos.put(tamanosBarcos[i], cantidad);
 					}
 				}
+				
+				final int superDisparos = (int) spinners[4].getValue();
+				final int megaDisparos = (int) spinners[5].getValue();
 
 				dispose();
 
@@ -94,7 +97,7 @@ public class AjustesPartida extends JFrame {
 
 				Runnable iniciarPartida = () -> {
 					System.out.println("Ambos jugadores han colocado sus barcos.");
-					PantallaInicioJuego inicioJuego = new PantallaInicioJuego();
+					PantallaInicioJuego inicioJuego = new PantallaInicioJuego(superDisparos, megaDisparos);
 					inicioJuego.setVisible(true);
 
 					dispose();
