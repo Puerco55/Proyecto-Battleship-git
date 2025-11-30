@@ -2,28 +2,25 @@ package battleship;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java. awt.GridLayout;
+import java. awt.event.ActionEvent;
+import java.awt.event. ActionListener;
 import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java. awt.event.WindowEvent;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing. JButton;
+import javax. swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing. JOptionPane;
+import javax.swing. JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 public class MainMenu extends JFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	public MainMenu() {
+    private static final long serialVersionUID = 1L;
+    
+    public MainMenu() {
 
         setTitle("Hundir la Flota 🚢");
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -31,48 +28,51 @@ public class MainMenu extends JFrame {
         setLocationRelativeTo(null); 
         setResizable(false);
         
-        //Cerrar ventana
+        // Inicializar base de datos
+        GestorBaseDatos. inicializarTablas();
+        
+        // Cerrar ventana
         addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				confirmarSalida();
-			}
-		});
+            @Override
+            public void windowClosing(WindowEvent e) {
+                confirmarSalida();
+            }
+        });
 
-        // --- PANEL PRINCIPAL ---
-        // Organizar los elementos.
+        // Panel principal
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20)); // Añade un margen interior
+        mainPanel. setBorder(new EmptyBorder(20, 20, 20, 20));
         setContentPane(mainPanel);
 
-        // --- TÍTULO DEL JUEGO ---
+        // Título del juego
         JLabel titleLabel = new JLabel("Hundir la Flota", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 36)); // Fuente grande y en negrita
-        mainPanel.add(titleLabel, BorderLayout.NORTH); // Añadir el título 
+        titleLabel. setFont(new Font("Arial", Font. BOLD, 36));
+        mainPanel.add(titleLabel, BorderLayout. NORTH);
         
-        // --- PANEL DE BOTONES ---
-        // Un panel para los botones
-        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15)); // 3 filas, 1 columna, 15px de espacio vertical
-        buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50)); // Margen para que no estén pegados a los bordes
-        mainPanel.add(buttonPanel, BorderLayout.CENTER); // Añadir el panel de botones en el centro
+        // Panel de botones
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15));
+        buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
+        mainPanel.add(buttonPanel, BorderLayout.CENTER);
         
-        // --- CREACIÓN DE BOTONES ---
+        // Creación de botones
         JButton playButton = new JButton("Jugar");
         JButton optionsButton = new JButton("Opciones");
         JButton statsButton = new JButton("Estadísticas");
         JButton exitButton = new JButton("Salir");
         
+        playButton.setFont(new Font("Arial", Font.BOLD, 16));
+        optionsButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        statsButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        exitButton.setFont(new Font("Arial", Font.PLAIN, 14));
         
-        // --- AÑADIR BOTONES AL PANEL ---
         buttonPanel.add(playButton);
         buttonPanel.add(optionsButton);
         buttonPanel.add(statsButton);
         buttonPanel.add(exitButton);
 
-
         // 1. Botón Jugar
         playButton.addActionListener(new ActionListener() {
-        	@Override
+            @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Iniciar Juego");
                 AjustesPartida ajustesPartida = new AjustesPartida();
@@ -85,49 +85,36 @@ public class MainMenu extends JFrame {
         optionsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	new MenuOpciones().setVisible(true);
-            	
+                new MenuOpciones().setVisible(true);
             }
         });
         
-     // 3. Botón Estadísticas
+        // 3. Botón Estadísticas
         statsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Creamos la ventana de estadísticas
                 MenuEstadisticas ventanaStats = new MenuEstadisticas();
-                
-                // La hacemos visible
                 ventanaStats.setVisible(true);
             }
         });
 
-        // 4. Botón Salir
+        // 4.  Botón Salir
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Cierra la aplicación
                 confirmarSalida();
             }
         });
-
-        // Hacer visible
-        setVisible(true);
     }
-	
-    //Función de cierre de ventana
+    
     private void confirmarSalida() {
-        int opcion = JOptionPane.showConfirmDialog(
-                this,
-                "¿Deseas salir de la aplicación?",
-                "Confirmar salida",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-
-        if (opcion == JOptionPane.YES_OPTION) {
+        int respuesta = JOptionPane.showConfirmDialog(this,
+            "¿Seguro que quieres salir? ",
+            "Confirmar salida",
+            JOptionPane.YES_NO_OPTION);
+        
+        if (respuesta == JOptionPane.YES_OPTION) {
             System.exit(0);
         }
     }
-
-   
 }

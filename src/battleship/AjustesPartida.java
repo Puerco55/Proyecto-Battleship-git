@@ -1,17 +1,17 @@
 package battleship;
 
-import java.awt. Dimension;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
-import java.awt. GridBagLayout;
-import java.awt. Insets;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt. event.ActionListener;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing. JButton;
+import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax. swing.JLabel;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
@@ -29,7 +29,7 @@ public class AjustesPartida extends JFrame {
     public AjustesPartida() {
         // Configuracion de la ventana
         setTitle("Ajustes de la Partida");
-        setDefaultCloseOperation(JFrame. EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -48,7 +48,7 @@ public class AjustesPartida extends JFrame {
         spinners = new JSpinner[nombresBarcos.length];
 
         // Crear etiquetas y spinners para cada tipo de barco
-        for (int i = 0; i < nombresBarcos. length; i++) {
+        for (int i = 0; i < nombresBarcos.length; i++) {
             gbc.gridx = 0;
             gbc.gridy = i + 1;
             gbc.anchor = GridBagConstraints.WEST;
@@ -81,7 +81,7 @@ public class AjustesPartida extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = nombresBarcos.length + 1;
         gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints. CENTER;
+        gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(20, 10, 10, 10);
         add(guardarButton, gbc);
 
@@ -97,7 +97,7 @@ public class AjustesPartida extends JFrame {
                 Map<Integer, Integer> configBarcos = new HashMap<>();
                 int totalCasillasBarco = 0;
                 
-                for (int i = 0; i < tamanosBarcos. length; i++) {
+                for (int i = 0; i < tamanosBarcos.length; i++) {
                     int cantidad = (int) spinners[i].getValue();
                     if (cantidad > 0) {
                         configBarcos.put(tamanosBarcos[i], cantidad);
@@ -107,7 +107,7 @@ public class AjustesPartida extends JFrame {
                 
                 // Verificar que hay al menos un barco
                 if (configBarcos.isEmpty()) {
-                    JOptionPane.showMessageDialog(AjustesPartida. this,
+                    JOptionPane.showMessageDialog(AjustesPartida.this,
                         "Debes seleccionar al menos un barco",
                         "Sin barcos",
                         JOptionPane.WARNING_MESSAGE);
@@ -116,8 +116,8 @@ public class AjustesPartida extends JFrame {
                 
                 // Verificar que no hay demasiadas casillas ocupadas
                 if (totalCasillasBarco > 50) {
-                    JOptionPane.showMessageDialog(AjustesPartida. this,
-                        "Demasiados barcos.  Máximo 50 casillas ocupadas.\nActual: " + totalCasillasBarco,
+                    JOptionPane.showMessageDialog(AjustesPartida.this,
+                        "Demasiados barcos.Máximo 50 casillas ocupadas.\nActual: " + totalCasillasBarco,
                         "Demasiados barcos",
                         JOptionPane.WARNING_MESSAGE);
                     return;
@@ -152,7 +152,7 @@ public class AjustesPartida extends JFrame {
                     JOptionPane.showMessageDialog(null,
                         "Jugador 1 ha terminado.\n\nPasa el dispositivo al Jugador 2.\nPulsa OK cuando esté listo.",
                         "Cambio de Jugador",
-                        JOptionPane. INFORMATION_MESSAGE);
+                        JOptionPane.INFORMATION_MESSAGE);
                     
                     new ColocarBarcos(2, configBarcos, (tableroJ2) -> {
                         tableros[1] = tableroJ2;
