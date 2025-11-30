@@ -82,7 +82,7 @@ public class ColocarBarcos extends JFrame {
         panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout. Y_AXIS));
         panelDerecho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 20));
 
-        panelDerecho.add(new JLabel("1.  Elige un barco:"));
+        panelDerecho.add(new JLabel("1.Elige un barco:"));
         panelDerecho.add(Box.createVerticalStrut(5));
         
         ButtonGroup grupoBarcos = new ButtonGroup();
@@ -121,7 +121,7 @@ public class ColocarBarcos extends JFrame {
 
         panelDerecho. add(Box.createVerticalStrut(15));
         
-        panelDerecho. add(new JLabel("3.  Haz clic en el tablero"));
+        panelDerecho. add(new JLabel("3.Haz clic en el tablero"));
 
         panelDerecho. add(Box.createVerticalGlue());
 
