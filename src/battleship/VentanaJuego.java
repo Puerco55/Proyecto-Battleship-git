@@ -306,9 +306,18 @@ public class VentanaJuego extends JFrame {
         
         ejecutarDisparoNormal(fila, columna);
         yaDisparo = true;
+        deshabilitarTableroAtaque();
     }
     
-    private boolean ejecutarDisparoEnPosicion(int fila, int columna) {
+    private void deshabilitarTableroAtaque() {
+        for (int fila = 0; fila < 10; fila++) {
+            for (int col = 0; col < 10; col++) {
+                celdasAtaque[fila][col]. setEnabled(false);
+            }
+        }
+    }
+
+	private boolean ejecutarDisparoEnPosicion(int fila, int columna) {
         if (fila < 0 || fila >= 10 || columna < 0 || columna >= 10) {
             return false;
         }
@@ -443,6 +452,8 @@ public class VentanaJuego extends JFrame {
             return;
         }
         
+        deshabilitarTableroAtaque();
+        
         JOptionPane.showMessageDialog(this, 
             "Super Disparo ejecutado.\nAciertos: " + totalAciertos + " de 5 casillas.", 
             "Resultado", JOptionPane.INFORMATION_MESSAGE);
@@ -494,6 +505,8 @@ public class VentanaJuego extends JFrame {
         if (verificarVictoria()) {
             return;
         }
+        
+        deshabilitarTableroAtaque();
         
         JOptionPane.showMessageDialog(this, 
             "Mega Disparo ejecutado.\nAciertos: " + totalAciertos + " de 9 casillas.", 
