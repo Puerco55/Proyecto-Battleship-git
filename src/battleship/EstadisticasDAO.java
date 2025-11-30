@@ -10,13 +10,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class EstadisticasDAO {
     
-     //Guarda el resultado de una partida al finalizar
-	
+    // Guarda el resultado de una partida al finalizar
     public void guardarPartida(String ganador, int turnos, int barcosHundidos) {
-        String sql = "INSERT INTO partidas(fecha, ganador, turnos, barcosHundidos) VALUES(?,?,?,?)";
+        String sql = "INSERT INTO partidas(fecha, ganador, turnos, barcos_hundidos) VALUES(?,?,?,?)";
 
         try (Connection conn = GestorBaseDatos.conectar();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -36,10 +34,9 @@ public class EstadisticasDAO {
         }
     }
     
-    //Metodo obtener historial en modo lista para la tabla
+    // Metodo obtener historial en modo lista para la tabla
     public List<Partida> obtenerHistorial() {
         List<Partida> historial = new ArrayList<>();
-
         String sql = "SELECT fecha, ganador, turnos, barcos_hundidos FROM partidas ORDER BY id DESC";
 
         try (Connection conn = GestorBaseDatos.conectar();
@@ -62,48 +59,50 @@ public class EstadisticasDAO {
         return historial;
     }
 
-    //Obtiene un objeto con los datos resumidos.
-    //Ya no se usa pero lo dejo
+    // He corregido este método para que busque "Jugador 1" y "Jugador 2"
+    // que es lo que escribes en la clase VentanaJuego.
     public ResumenEstadisticas obtenerResumen() {
         String sqlTotal = "SELECT COUNT(*) FROM partidas";
-        String sqlVictorias = "SELECT COUNT(*) FROM partidas WHERE ganador = 'JUGADOR'";
-        String sqlDerrotas = "SELECT COUNT(*) FROM partidas WHERE ganador = 'CPU'";
+        // Nota el espacio en 'Jugador 1'
+        String sqlVictoriasJ1 = "SELECT COUNT(*) FROM partidas WHERE ganador = 'Jugador 1'";
+        String sqlVictoriasJ2 = "SELECT COUNT(*) FROM partidas WHERE ganador = 'Jugador 2'";
 
-        int total = 0, victorias = 0, derrotas = 0;
+        int total = 0, victoriasJ1 = 0, victoriasJ2 = 0;
 
         try (Connection conn = GestorBaseDatos.conectar()) {
-            
-            // Consultar Total
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sqlTotal);
-            if (rs.next()) total = rs.getInt(1);
+            if (conn != null) {
+                Statement stmt = conn.createStatement();
 
-            // Consultar Victorias
-            rs = stmt.executeQuery(sqlVictorias);
-            if (rs.next()) victorias = rs.getInt(1);
-            
-            // Consultar Derrotas
-            rs = stmt.executeQuery(sqlDerrotas);
-            if (rs.next()) derrotas = rs.getInt(1);
+                // Consultar Total
+                ResultSet rs = stmt.executeQuery(sqlTotal);
+                if (rs.next()) total = rs.getInt(1);
 
+                // Consultar Victorias J1
+                rs = stmt.executeQuery(sqlVictoriasJ1);
+                if (rs.next()) victoriasJ1 = rs.getInt(1);
+                
+                // Consultar Victorias J2
+                rs = stmt.executeQuery(sqlVictoriasJ2);
+                if (rs.next()) victoriasJ2 = rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.out.println("Error al obtener estadísticas: " + e.getMessage());
         }
 
-        return new ResumenEstadisticas(total, victorias, derrotas);
+        // Reutilizo tu clase interna, asignando J1 a victorias y J2 a derrotas (o viceversa según quieras verlo)
+        // O podrías cambiar la clase interna para tener victoriasJ1 y victoriasJ2 explícitamente.
+        return new ResumenEstadisticas(total, victoriasJ1, victoriasJ2);
     }
     
-    // Clase interna simple para transportar los datos
     public static class ResumenEstadisticas {
         public int total;
-        public int victorias;
-        public int derrotas;
+        public int victoriasJ1; // Cambiado nombre para claridad
+        public int victoriasJ2; // Cambiado nombre para claridad
 
-        public ResumenEstadisticas(int t, int v, int d) {
+        public ResumenEstadisticas(int t, int v1, int v2) {
             this.total = t;
-            this.victorias = v;
-            this.derrotas = d;
+            this.victoriasJ1 = v1;
+            this.victoriasJ2 = v2;
         }
     }
-    
 }
