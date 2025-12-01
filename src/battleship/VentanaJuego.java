@@ -14,15 +14,21 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class VentanaJuego extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    // Tablero grande (donde el jugador dispara al oponente)
+    // Componentes del HILO (THREAD)
+    private JLabel labelTiempo;
+    private Thread hiloCronometro;
+    private volatile boolean juegoActivo = true; // Controla la vida del hilo
+
+    // Tablero grande
     private JButton[][] celdasAtaque = new JButton[10][10];
     
-    // Tablero pequeño (tablero propio del jugador, solo visual)
+    // Tablero pequeño
     private JPanel[][] celdasPropias = new JPanel[10][10];
     
     // Labels de estadísticas
@@ -30,52 +36,37 @@ public class VentanaJuego extends JFrame {
     private JLabel labelFallos;
     private JLabel labelBarcosHundidos;
     
-    // Botones de disparos especiales
+    // Botones
     private JButton botonSuperDisparo;
     private JButton botonMegaDisparo;
     private JButton botonGuardar;
     
-    // Estadísticas por jugador [0] = J1, [1] = J2
+    // Datos del juego
     private int[] aciertos = {0, 0};
     private int[] fallos = {0, 0};
     private int[] barcosHundidosContador = {0, 0};
     private int[] superDisparos = new int[2];
     private int[] megaDisparos = new int[2];
     
-    // Control de jugadores
     private int jugadorActual;
-    
-    // Contador de turnos totales para estadísticas
     private int turnosTotales = 0;
     
-    //Tableros de ambos jugadores
     private boolean[][] tableroJugador1;
     private boolean[][] tableroJugador2;
-    
-    //Matrices para registrar los disparos de cada jugador
     private boolean[][] disparosJugador1 = new boolean[10][10];
     private boolean[][] disparosJugador2 = new boolean[10][10];
-    
-    //Matrices para registrar impactos recibidos en cada tablero
     private boolean[][] impactosEnTablero1 = new boolean[10][10];
     private boolean[][] impactosEnTablero2 = new boolean[10][10];
     
-    //Total de casillas con barco de cada jugador
     private int totalCasillasBarcoJ1 = 0;
     private int totalCasillasBarcoJ2 = 0;
-    
-    //Casillas de barco acertadas por cada jugador
     private int casillasAcertadasPorJ1 = 0;
     private int casillasAcertadasPorJ2 = 0;
     
-    //DAO para guardar estadísticas
     private EstadisticasDAO estadisticasDAO;
     
-    //Estado del disparo especial activo
     private boolean superDisparoActivo = false;
     private boolean megaDisparoActivo = false;
-    
-    //Control de si el jugador ya disparó este turno
     private boolean yaDisparo = false;
 
     public VentanaJuego(int numeroJugador, int superDisparosIniciales, int megaDisparosIniciales, 
@@ -87,11 +78,10 @@ public class VentanaJuego extends JFrame {
         this.megaDisparos[1] = megaDisparosIniciales;
         this.estadisticasDAO = new EstadisticasDAO();
         
-        //Guardar los tableros de ambos jugadores
         this.tableroJugador1 = tableroJ1;
         this.tableroJugador2 = tableroJ2;
         
-        //Contar casillas con barco de cada jugador
+        // Contar casillas
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (tableroJugador1[i][j]) totalCasillasBarcoJ1++;
@@ -101,7 +91,7 @@ public class VentanaJuego extends JFrame {
 
         setTitle("Hundir la Flota - Turno del Jugador " + jugadorActual);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(650, 500);
+        setSize(700, 550); // Un poco más alto para el tiempo
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -109,31 +99,43 @@ public class VentanaJuego extends JFrame {
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         setContentPane(panelPrincipal);
 
-        //Panel superior (Estadísticas)
+        // --- PANEL SUPERIOR (Estadísticas + TIEMPO) ---
+        JPanel panelInfoSuperior = new JPanel(new BorderLayout());
+        
+        // Panel de estadísticas
         JPanel panelEstadisticas = new JPanel();
         panelEstadisticas.setLayout(new BoxLayout(panelEstadisticas, BoxLayout.X_AXIS));
-        panelEstadisticas.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-
+        
         labelAciertos = new JLabel("Aciertos: 0");
         labelAciertos.setFont(new Font("Arial", Font.BOLD, 14));
         labelAciertos.setForeground(new Color(0, 128, 0));
-        panelEstadisticas.add(labelAciertos);
-        panelEstadisticas.add(Box.createHorizontalStrut(30));
-
+        
         labelFallos = new JLabel("Fallos: 0");
         labelFallos.setFont(new Font("Arial", Font.BOLD, 14));
         labelFallos.setForeground(Color.RED);
-        panelEstadisticas.add(labelFallos);
-        panelEstadisticas.add(Box.createHorizontalStrut(30));
-
+        
         labelBarcosHundidos = new JLabel("Barcos hundidos: 0");
         labelBarcosHundidos.setFont(new Font("Arial", Font.BOLD, 14));
         labelBarcosHundidos.setForeground(Color.BLUE);
+        
+        panelEstadisticas.add(labelAciertos);
+        panelEstadisticas.add(Box.createHorizontalStrut(20));
+        panelEstadisticas.add(labelFallos);
+        panelEstadisticas.add(Box.createHorizontalStrut(20));
         panelEstadisticas.add(labelBarcosHundidos);
 
-        panelPrincipal.add(panelEstadisticas, BorderLayout.NORTH);
+        // --- AQUÍ ESTÁ EL REQUISITO DEL HILO ---
+        labelTiempo = new JLabel("Tiempo: 00:00");
+        labelTiempo.setFont(new Font("Monospaced", Font.BOLD, 16));
+        labelTiempo.setForeground(Color.DARK_GRAY);
+        labelTiempo.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        
+        panelInfoSuperior.add(panelEstadisticas, BorderLayout.WEST);
+        panelInfoSuperior.add(labelTiempo, BorderLayout.EAST); // Reloj a la derecha
+        
+        panelPrincipal.add(panelInfoSuperior, BorderLayout.NORTH);
 
-        //Panel central (Tablero de ataque)
+        // Panel central (Tablero de ataque)
         JPanel panelTableroAtaque = new JPanel(new GridLayout(10, 10));
         panelTableroAtaque.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(Color.BLACK, 2), "Tablero del Oponente (Dispara aquí)"));
@@ -154,15 +156,14 @@ public class VentanaJuego extends JFrame {
         }
         panelPrincipal.add(panelTableroAtaque, BorderLayout.CENTER);
 
-        //Panel derecho
+        // Panel derecho
         JPanel panelDerecho = new JPanel();
         panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout.Y_AXIS));
         panelDerecho.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         panelDerecho.setPreferredSize(new Dimension(200, 400));
 
-        //Tablero pequeño
+        // Tablero pequeño
         JLabel labelTableroPropio = new JLabel("Tu tablero:");
-        labelTableroPropio.setFont(new Font("Arial", Font.BOLD, 12));
         labelTableroPropio.setAlignmentX(LEFT_ALIGNMENT);
         panelDerecho.add(labelTableroPropio);
         panelDerecho.add(Box.createVerticalStrut(5));
@@ -185,7 +186,7 @@ public class VentanaJuego extends JFrame {
         panelDerecho.add(panelTableroPropio);
         panelDerecho.add(Box.createVerticalStrut(20));
 
-        //Disparos especiales
+        // Disparos especiales
         JLabel labelDisparos = new JLabel("DISPAROS ESPECIALES:");
         labelDisparos.setFont(new Font("Arial", Font.BOLD, 12));
         labelDisparos.setAlignmentX(LEFT_ALIGNMENT);
@@ -193,28 +194,22 @@ public class VentanaJuego extends JFrame {
         panelDerecho.add(Box.createVerticalStrut(10));
 
         botonSuperDisparo = new JButton("Super Disparo (" + superDisparos[0] + ")");
-        botonSuperDisparo.setPreferredSize(new Dimension(180, 35));
         botonSuperDisparo.setMaximumSize(new Dimension(180, 35));
         botonSuperDisparo.setAlignmentX(LEFT_ALIGNMENT);
-        botonSuperDisparo.setToolTipText("Dispara en cruz (5 casillas)");
         botonSuperDisparo.addActionListener(e -> activarSuperDisparo());
         panelDerecho.add(botonSuperDisparo);
         panelDerecho.add(Box.createVerticalStrut(10));
 
         botonMegaDisparo = new JButton("Mega Disparo (" + megaDisparos[0] + ")");
-        botonMegaDisparo.setPreferredSize(new Dimension(180, 35));
         botonMegaDisparo.setMaximumSize(new Dimension(180, 35));
         botonMegaDisparo.setAlignmentX(LEFT_ALIGNMENT);
-        botonMegaDisparo.setToolTipText("Dispara en área 3x3 (9 casillas)");
         botonMegaDisparo.addActionListener(e -> activarMegaDisparo());
         panelDerecho.add(botonMegaDisparo);
         panelDerecho.add(Box.createVerticalGlue());
 
         botonGuardar = new JButton("Pasar Turno");
-        botonGuardar.setPreferredSize(new Dimension(180, 40));
         botonGuardar.setMaximumSize(new Dimension(180, 40));
         botonGuardar.setAlignmentX(LEFT_ALIGNMENT);
-        botonGuardar.setFont(new Font("Arial", Font.BOLD, 14));
         botonGuardar.setBackground(new Color(100, 180, 100));
         botonGuardar.addActionListener(e -> cambiarJugador());
         panelDerecho.add(botonGuardar);
@@ -224,7 +219,43 @@ public class VentanaJuego extends JFrame {
         actualizarTableroPropio();
         actualizarEstadisticas();
         actualizarBotonesDisparos();
+        
+        // Inicio del hilo
+        iniciarCronometro();
     }
+
+    // Codigo del hilo
+    private void iniciarCronometro() {
+        hiloCronometro = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int segundosTotales = 0;
+                while (juegoActivo) {
+                    try {
+                        Thread.sleep(1000); // Pausa de 1 segundo
+                        segundosTotales++;
+                        
+                        // Cálculos de minutos y segundos
+                        int minutos = segundosTotales / 60;
+                        int segundos = segundosTotales % 60;
+                        
+                        // Formatear texto (ej: 02:05)
+                        String tiempoTexto = String.format("Tiempo: %02d:%02d", minutos, segundos);
+                        
+                        // Actualizar la interfaz de forma segura
+                        SwingUtilities.invokeLater(() -> labelTiempo.setText(tiempoTexto));
+                        
+                    } catch (InterruptedException e) {
+                        System.out.println("Cronómetro interrumpido");
+                        return;
+                    }
+                }
+            }
+        });
+        hiloCronometro.start();
+    }
+
+    // --- MÉTODOS EXISTENTES DEL JUEGO ---
 
     private void actualizarTableroPropio() {
         boolean[][] tableroActual = (jugadorActual == 1) ? tableroJugador1 : tableroJugador2;
@@ -289,7 +320,6 @@ public class VentanaJuego extends JFrame {
             return;
         }
         
-        //Verificar si hay disparo especial
         if (superDisparoActivo) {
             ejecutarSuperDisparo(fila, columna);
             superDisparoActivo = false;
@@ -312,12 +342,12 @@ public class VentanaJuego extends JFrame {
     private void deshabilitarTableroAtaque() {
         for (int fila = 0; fila < 10; fila++) {
             for (int col = 0; col < 10; col++) {
-                celdasAtaque[fila][col]. setEnabled(false);
+                celdasAtaque[fila][col].setEnabled(false);
             }
         }
     }
 
-	private boolean ejecutarDisparoEnPosicion(int fila, int columna) {
+    private boolean ejecutarDisparoEnPosicion(int fila, int columna) {
         if (fila < 0 || fila >= 10 || columna < 0 || columna >= 10) {
             return false;
         }
@@ -359,7 +389,6 @@ public class VentanaJuego extends JFrame {
         boolean acierto = ejecutarDisparoEnPosicion(fila, columna);
         actualizarEstadisticas();
         
-        //Verificar victoria
         if (verificarVictoria()) {
             return;
         }
@@ -368,7 +397,7 @@ public class VentanaJuego extends JFrame {
             JOptionPane.showMessageDialog(this, "¡ACIERTO! Has impactado un barco.", 
                 "¡Boom!", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(this, "Agua...Has fallado.", 
+            JOptionPane.showMessageDialog(this, "Agua... Has fallado.", 
                 "Splash", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -376,7 +405,7 @@ public class VentanaJuego extends JFrame {
     private void cambiarJugador() {
         if (! yaDisparo) {
             int respuesta = JOptionPane.showConfirmDialog(this,
-                "No has disparado este turno.¿Seguro que quieres pasar? ",
+                "No has disparado este turno. ¿Seguro que quieres pasar? ",
                 "Confirmar", JOptionPane.YES_NO_OPTION);
             if (respuesta != JOptionPane.YES_OPTION) return;
         }
@@ -399,7 +428,6 @@ public class VentanaJuego extends JFrame {
         actualizarBotonesDisparos();
     }
     
-    //Activa el modo Super Disparo
     private void activarSuperDisparo() {
         int idx = jugadorActual - 1;
         
@@ -410,7 +438,7 @@ public class VentanaJuego extends JFrame {
         }
         
         if (yaDisparo) {
-            JOptionPane.showMessageDialog(this, "Ya has disparado este turno.Pasa el turno primero.", 
+            JOptionPane.showMessageDialog(this, "Ya has disparado este turno. Pasa el turno primero.", 
                 "Turno usado", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -423,21 +451,15 @@ public class VentanaJuego extends JFrame {
             "Super Disparo", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    //Ejecuta el Super Disparo
     private void ejecutarSuperDisparo(int fila, int columna) {
         int idx = jugadorActual - 1;
         superDisparos[idx]--;
         actualizarBotonesDisparos();
         
         int totalAciertos = 0;
-        
-        // Disparo en cruz: centro + 4 direcciones
         int[][] posiciones = {
-            {fila, columna},           // Centro
-            {fila - 1, columna},       // Arriba
-            {fila + 1, columna},       // Abajo
-            {fila, columna - 1},       // Izquierda
-            {fila, columna + 1}        // Derecha
+            {fila, columna}, {fila - 1, columna}, {fila + 1, columna},
+            {fila, columna - 1}, {fila, columna + 1}
         };
         
         for (int[] pos : posiciones) {
@@ -453,13 +475,11 @@ public class VentanaJuego extends JFrame {
         }
         
         deshabilitarTableroAtaque();
-        
         JOptionPane.showMessageDialog(this, 
             "Super Disparo ejecutado.\nAciertos: " + totalAciertos + " de 5 casillas.", 
             "Resultado", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    //Activa el modo Mega Disparo
     private void activarMegaDisparo() {
         int idx = jugadorActual - 1;
         
@@ -470,7 +490,7 @@ public class VentanaJuego extends JFrame {
         }
         
         if (yaDisparo) {
-            JOptionPane.showMessageDialog(this, "Ya has disparado este turno.Pasa el turno primero.", 
+            JOptionPane.showMessageDialog(this, "Ya has disparado este turno. Pasa el turno primero.", 
                 "Turno usado", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -483,15 +503,12 @@ public class VentanaJuego extends JFrame {
             "Mega Disparo", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    //Ejecuta el Mega Disparo
     private void ejecutarMegaDisparo(int fila, int columna) {
         int idx = jugadorActual - 1;
         megaDisparos[idx]--;
         actualizarBotonesDisparos();
         
         int totalAciertos = 0;
-        
-        // Disparo en 3x3
         for (int f = fila - 1; f <= fila + 1; f++) {
             for (int c = columna - 1; c <= columna + 1; c++) {
                 if (ejecutarDisparoEnPosicion(f, c)) {
@@ -507,13 +524,11 @@ public class VentanaJuego extends JFrame {
         }
         
         deshabilitarTableroAtaque();
-        
         JOptionPane.showMessageDialog(this, 
             "Mega Disparo ejecutado.\nAciertos: " + totalAciertos + " de 9 casillas.", 
             "Resultado", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    //Verifica si el jugador ha ganado la partida
     private boolean verificarVictoria() {
         int casillasNecesarias;
         int casillasAcertadas;
@@ -534,26 +549,22 @@ public class VentanaJuego extends JFrame {
         return false;
     }
     
-    //Finaliza la partida, muestra el ganador y guarda las estadísticas
     private void finalizarPartida(int jugadorGanador) {
-        // Mostrar mensaje de victoria
-        JOptionPane.showMessageDialog(this, 
-            "¡¡¡FELICIDADES!! !\n\nEl Jugador " + jugadorGanador + " ha GANADO la partida!\n\n" +
-            "Turnos totales: " + turnosTotales + "\n" +
-            "Aciertos del ganador: " + aciertos[jugadorGanador - 1] + "\n" +
-            "Fallos del ganador: " + fallos[jugadorGanador - 1],
-            "¡¡¡VICTORIA!!! ",
-            JOptionPane.INFORMATION_MESSAGE);
+        // Detener hilo
+        juegoActivo = false;
         
-        //Guardar estadísticas en la bd
+        JOptionPane.showMessageDialog(this, 
+            "¡¡¡FELICIDADES!!!\n\nEl Jugador " + jugadorGanador + " ha GANADO la partida!\n\n" +
+            "Tiempo total: " + labelTiempo.getText() + "\n" +
+            "Turnos totales: " + turnosTotales,
+            "¡¡¡VICTORIA!!!", JOptionPane.INFORMATION_MESSAGE);
+        
+        // Guardar en BD
         String ganador = "Jugador " + jugadorGanador;
         estadisticasDAO.guardarPartida(ganador, turnosTotales, barcosHundidosContador[jugadorGanador -1]);
         
-        //Preguntar quiere jugar otra partida
         int respuesta = JOptionPane.showConfirmDialog(this,
-            "¿Quieres jugar otra partida?",
-            "Nueva Partida",
-            JOptionPane.YES_NO_OPTION);
+            "¿Quieres jugar otra partida?", "Nueva Partida", JOptionPane.YES_NO_OPTION);
         
         if (respuesta == JOptionPane.YES_OPTION) {
             MainMenu menu = new MainMenu();
