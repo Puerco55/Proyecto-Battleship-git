@@ -93,6 +93,20 @@ public class EstadisticasDAO {
         // O podrías cambiar la clase interna para tener victoriasJ1 y victoriasJ2 explícitamente.
         return new ResumenEstadisticas(total, victoriasJ1, victoriasJ2);
     }
+    // Método para borrar todo el historial
+    public void borrarHistorial() {
+        String sql = "DELETE FROM partidas";
+        
+        try (Connection conn = GestorBaseDatos.conectar();
+             Statement stmt = conn.createStatement()) {
+            
+            int filasAfectadas = stmt.executeUpdate(sql);
+            System.out.println("Historial borrado. Filas eliminadas: " + filasAfectadas);
+            
+        } catch (SQLException e) {
+            System.out.println("Error al borrar historial: " + e.getMessage());
+        }
+    }
     
     public static class ResumenEstadisticas {
         public int total;
