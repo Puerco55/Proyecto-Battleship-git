@@ -60,7 +60,7 @@ public class MainMenu extends JFrame {
         JButton statsButton = new JButton("Estadísticas");
         JButton exitButton = new JButton("Salir");
         
-        playButton.setFont(new Font("Arial", Font.BOLD, 16));
+        playButton.setFont(new Font("Arial", Font.PLAIN, 14));
         optionsButton.setFont(new Font("Arial", Font.PLAIN, 14));
         statsButton.setFont(new Font("Arial", Font.PLAIN, 14));
         exitButton.setFont(new Font("Arial", Font.PLAIN, 14));

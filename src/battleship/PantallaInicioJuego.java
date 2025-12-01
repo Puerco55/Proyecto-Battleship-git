@@ -9,6 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 
 public class PantallaInicioJuego extends JFrame {
@@ -41,16 +43,19 @@ public class PantallaInicioJuego extends JFrame {
         titulo.setFont(new Font("Arial", Font.BOLD, 28));
         panel.add(titulo, BorderLayout.NORTH);
        
-        // Mensaje
-        JLabel mensaje = new JLabel("<html><center>Ambos jugadores han colocado sus barcos.<br><br>" +
-            "El Jugador 1 comenzará la partida.<br><br>" +
-            "¡Que gane el mejor! </center></html>", SwingConstants.CENTER);
-        mensaje.setFont(new Font("Arial", Font.PLAIN, 16));
-        panel.add(mensaje, BorderLayout.CENTER);
+     // Texto
+        JLabel mensaje = new JLabel("Ambos jugadores han colocado sus barcos");
+        mensaje.setFont(new Font("Arial", Font.PLAIN, 16));    
+        mensaje.setOpaque(false);       
+        mensaje.setBorder(null);         
+        
+        JPanel panelMensaje = new JPanel();
+        panelMensaje.add(mensaje);
+        panel.add(panelMensaje, BorderLayout.CENTER);
        
         // Boton para empezar el juego
         JButton empezarButton = new JButton("¡EMPEZAR BATALLA!");
-        empezarButton.setFont(new Font("Arial", Font.BOLD, 18));
+        empezarButton.setFont(new Font("Arial", Font.BOLD, 12));
         empezarButton.setPreferredSize(new java.awt.Dimension(250, 50));
        
         JPanel panelBoton = new JPanel();

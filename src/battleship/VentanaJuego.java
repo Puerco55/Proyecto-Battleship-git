@@ -554,7 +554,7 @@ public class VentanaJuego extends JFrame {
         juegoActivo = false;
         
         JOptionPane.showMessageDialog(this, 
-            "¡¡¡FELICIDADES!!!\n\nEl Jugador " + jugadorGanador + " ha GANADO la partida!\n\n" +
+            "¡FELICIDADES!\n\nEl Jugador " + jugadorGanador + " ha GANADO la partida!\n\n" +
             "Tiempo total: " + labelTiempo.getText() + "\n" +
             "Turnos totales: " + turnosTotales,
             "¡¡¡VICTORIA!!!", JOptionPane.INFORMATION_MESSAGE);

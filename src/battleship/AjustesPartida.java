@@ -153,8 +153,7 @@ public class AjustesPartida extends JFrame {
                         "Jugador 1 ha terminado.\n\nPasa el dispositivo al Jugador 2.\nPulsa OK cuando esté listo.",
                         "Cambio de Jugador",
                         JOptionPane.INFORMATION_MESSAGE);
-                    
-                    new ColocarBarcos(2, configBarcos, (tableroJ2) -> {
+                    	                    new ColocarBarcos(2, configBarcos, (tableroJ2) -> {
                         tableros[1] = tableroJ2;
                         iniciarPartida.run();
                     });

@@ -96,15 +96,9 @@ public class MenuOpciones extends JFrame {
         panelBorrado.add(lblInfoBorrado, BorderLayout.CENTER);
         panelBorrado.add(btnBorrarHistorial, BorderLayout.SOUTH);
         
-        // Panel de Créditos
-        JLabel lblCreditos = new JLabel("Desarrollado para Proyecto Final de Programación", SwingConstants.CENTER);
-        lblCreditos.setFont(new Font("Arial", Font.ITALIC, 11));
-        lblCreditos.setForeground(Color.GRAY);
-
         // Añadir todo al panel sur
         panelSur.add(panelBorrado);
         panelSur.add(Box.createVerticalStrut(5));
-        panelSur.add(lblCreditos);
         
         mainPanel.add(panelSur, BorderLayout.SOUTH);
         
