@@ -174,9 +174,9 @@ public class ColocarBarcos extends JFrame {
         setVisible(true);
     }
     
-    /**
-     * Reinicia el tablero a su estado inicial
-     */
+    
+     // Reinicia el tablero a su estado inicial
+     
     private void reiniciarTablero() {
         // Reiniciar matriz
         tablero = new boolean[10][10];
@@ -201,9 +201,9 @@ public class ColocarBarcos extends JFrame {
         barcoSeleccionado = -1;
     }
     
-    /**
-     * Crea una copia del tablero para evitar referencias compartidas
-     */
+    
+     // Crea una copia del tablero para evitar referencias compartidas
+     
     private boolean[][] clonarTablero(boolean[][] original) {
         boolean[][] copia = new boolean[10][10];
         for (int i = 0; i < 10; i++) {

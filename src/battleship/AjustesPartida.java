@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -145,7 +146,7 @@ public class AjustesPartida extends JFrame {
                 };
 
                 // Jugador 2 coloca sus barcos
-                java.util.function.Consumer<boolean[][]> configurarJugador2 = (tableroJ1) -> {
+                Consumer<boolean[][]> configurarJugador2 = (tableroJ1) -> {
                     tableros[0] = tableroJ1;
                     
                     // Pantalla de transición
