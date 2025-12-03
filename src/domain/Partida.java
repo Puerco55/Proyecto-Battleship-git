@@ -1,4 +1,4 @@
-package battleship;
+package domain;
 
 public class Partida {
 

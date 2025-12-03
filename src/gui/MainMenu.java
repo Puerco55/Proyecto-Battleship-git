@@ -1,4 +1,4 @@
-package battleship;
+package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -15,6 +15,9 @@ import javax.swing. JOptionPane;
 import javax.swing. JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+
+import db.GestorBaseDatos;
+import main.AjustesPartida;
 
 public class MainMenu extends JFrame {
 

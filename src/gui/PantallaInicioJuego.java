@@ -1,4 +1,4 @@
-package battleship;
+package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -9,8 +9,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 
 public class PantallaInicioJuego extends JFrame {

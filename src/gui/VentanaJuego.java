@@ -1,4 +1,4 @@
-package battleship;
+package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -15,6 +15,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import db.EstadisticasDAO;
 
 public class VentanaJuego extends JFrame {
 

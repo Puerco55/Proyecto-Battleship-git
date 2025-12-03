@@ -1,4 +1,4 @@
-package battleship;
+package db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import domain.Partida;
 
 public class EstadisticasDAO {
     

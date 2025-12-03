@@ -1,4 +1,4 @@
-package battleship;
+package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -10,6 +10,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+
+import db.EstadisticasDAO;
+import db.GestorBaseDatos;
+import domain.Partida;
 
 
 public class MenuEstadisticas extends JFrame {

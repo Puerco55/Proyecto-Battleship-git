@@ -1,6 +1,10 @@
-package battleship;
+package main;
 
 import javax.swing.SwingUtilities;
+
+import db.EstadisticasDAO;
+import db.GestorBaseDatos;
+import gui.MainMenu;
 
 public class Main {
     public static void main(String[] args) {
