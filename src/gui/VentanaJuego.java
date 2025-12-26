@@ -30,11 +30,10 @@ public class VentanaJuego extends JFrame {
     private boolean megaDisparoActivo = false;
     private boolean yaDisparo = false;
     
-    // --- NUEVAS VARIABLES PARA EL TIEMPO ---
-    private int segundosTurnoActual = 0;      // Tiempo que ve el jugador ahora
-    private int segundosTotalesPartida = 0;   // Acumulador de toda la partida
-    private volatile boolean cronometroPausado = false; // Para detenerlo al cambiar turno
-    // ---------------------------------------
+    // Variables para el tiempo
+    private int segundosTurnoActual = 0;      
+    private int segundosTotalesPartida = 0;   
+    private volatile boolean cronometroPausado = false; 
     
     private Thread hiloCronometro;
     private volatile boolean juegoActivo = true;
@@ -56,7 +55,7 @@ public class VentanaJuego extends JFrame {
         configurarVentana();
         inicializarComponentes();
         actualizarInterfaz();
-        iniciarCronometro(); // Arranca el hilo
+        iniciarCronometro(); 
     }
     
     private void configurarTurno(Jugador actual, Jugador enemigo) {
@@ -67,7 +66,7 @@ public class VentanaJuego extends JFrame {
     private void configurarVentana() {
         setTitle("Hundir la Flota - Batalla Naval");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(900, 650); // Un poco más grande para acomodar todo bien
         setLocationRelativeTo(null);
         setResizable(false);
     }
@@ -77,7 +76,7 @@ public class VentanaJuego extends JFrame {
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         setContentPane(panelPrincipal);
 
-        // --- TOP PANEL ---
+        // --- TOP PANEL (Estadísticas y Tiempo) ---
         JPanel panelInfo = new JPanel(new BorderLayout());
         
         JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
@@ -122,18 +121,28 @@ public class VentanaJuego extends JFrame {
         // --- RIGHT (CONTROLES Y TABLERO PROPIO) ---
         JPanel panelDerecho = new JPanel();
         panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout.Y_AXIS));
-        panelDerecho.setPreferredSize(new Dimension(250, 0));
+        panelDerecho.setPreferredSize(new Dimension(280, 0)); // Un poco más ancho
+        panelDerecho.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         
         panelDerecho.add(new JLabel("Tu Flota:"));
+        
+        // Tablero propio
         JPanel miniTablero = new JPanel(new GridLayout(10, 10));
-        miniTablero.setPreferredSize(new Dimension(200, 200));
-        miniTablero.setMaximumSize(new Dimension(200, 200));
-        miniTablero.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        miniTablero.setPreferredSize(new Dimension(250, 250));
+        miniTablero.setMaximumSize(new Dimension(250, 250));
+        // Borde exterior del mini tablero
+        miniTablero.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 JPanel p = new JPanel();
                 p.setBackground(new Color(0, 150, 200));
+                
+                
+                // Añadimos un borde gris oscuro a cada celda individual
+                p.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY)); 
+                
+
                 celdasPropias[i][j] = p;
                 miniTablero.add(p);
             }
@@ -141,6 +150,7 @@ public class VentanaJuego extends JFrame {
         panelDerecho.add(miniTablero);
         panelDerecho.add(Box.createVerticalStrut(20));
         
+        // Botones
         botonSuperDisparo = new JButton("Super Disparo");
         botonSuperDisparo.addActionListener(e -> activarHabilidad(true, false));
         
@@ -170,11 +180,11 @@ public class VentanaJuego extends JFrame {
     
     private Component alinearBoton(JButton b) {
         b.setAlignmentX(Component.CENTER_ALIGNMENT);
-        b.setMaximumSize(new Dimension(220, 40));
+        b.setMaximumSize(new Dimension(240, 45));
         return b;
     }
 
-    // --- LÓGICA DEL JUEGO ---
+    
 
     private void procesarClicCelda(int fila, int col) {
         if (yaDisparo) {
@@ -305,7 +315,6 @@ public class VentanaJuego extends JFrame {
         }
     }
 
-    // --- AQUÍ ESTÁ LA LÓGICA DEL CAMBIO DE TURNO Y TIEMPO ---
     private void cambiarTurno() {
         if (!yaDisparo) {
             int confirm = JOptionPane.showConfirmDialog(this, "¿Pasar sin disparar?", "Confirmar", JOptionPane.YES_NO_OPTION);
@@ -317,10 +326,9 @@ public class VentanaJuego extends JFrame {
         
         // 2. Acumular el tiempo del turno al total
         segundosTotalesPartida += segundosTurnoActual;
-        
         turnosTotales++;
         
-        // 3. Diálogo de espera (mientras está abierto, el tiempo no corre gracias a cronometroPausado)
+        // 3. Diálogo de espera
         JOptionPane.showMessageDialog(this, 
             "Fin del turno. Tiempo acumulado partida: " + formatearTiempo(segundosTotalesPartida) + "\n\n" +
             "Pasa el dispositivo al OTRO jugador.",
@@ -331,12 +339,12 @@ public class VentanaJuego extends JFrame {
         jugadorActual = oponente;
         oponente = temp;
         
-        // 5. Resetear estado para el nuevo turno
+        // 5. Resetear estado
         yaDisparo = false;
         superDisparoActivo = false;
         megaDisparoActivo = false;
         
-        // 6. REINICIAR el contador visual del turno
+        // 6. Reiniciar contador turno
         segundosTurnoActual = 0; 
         labelTiempo.setText("00:00");
         
@@ -354,6 +362,7 @@ public class VentanaJuego extends JFrame {
         botonSuperDisparo.setText("Super Disparo (" + jugadorActual.getSuperDisparos() + ")");
         botonMegaDisparo.setText("Mega Disparo (" + jugadorActual.getMegaDisparos() + ")");
         
+        // Tablero Ataque
         boolean[][] disparos = jugadorActual.getTableroDisparos();
         boolean[][] barcosEnemigos = oponente.getTableroPropio(); 
         
@@ -376,6 +385,7 @@ public class VentanaJuego extends JFrame {
             }
         }
 
+        // Tablero Propio
         boolean[][] miTablero = jugadorActual.getTableroPropio();
         boolean[][] misDaños = jugadorActual.getImpactosRecibidos();
         
@@ -390,14 +400,12 @@ public class VentanaJuego extends JFrame {
         }
     }
     
-    // --- NUEVA LÓGICA DEL CRONÓMETRO ---
     private void iniciarCronometro() {
         hiloCronometro = new Thread(() -> {
             while (juegoActivo) {
                 try {
                     Thread.sleep(1000);
                     
-                    // Solo contamos si NO está pausado (ej: durante el popup de cambio de turno)
                     if (!cronometroPausado) {
                         segundosTurnoActual++;
                         String tiempo = formatearTiempo(segundosTurnoActual);
@@ -410,7 +418,6 @@ public class VentanaJuego extends JFrame {
         hiloCronometro.start();
     }
     
-    // Método auxiliar para formatear mm:ss
     private String formatearTiempo(int totalSegundos) {
         int min = totalSegundos / 60;
         int seg = totalSegundos % 60;
