@@ -1,578 +1,419 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
+import java.awt.*;
+import javax.swing.*;
 import db.EstadisticasDAO;
+import domain.Jugador;
 
 public class VentanaJuego extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    // Componentes del HILO (THREAD)
+    // Componentes UI
     private JLabel labelTiempo;
-    private Thread hiloCronometro;
-    private volatile boolean juegoActivo = true; // Controla la vida del hilo
-
-    // Tablero grande
+    private JLabel labelInfoJugador;
     private JButton[][] celdasAtaque = new JButton[10][10];
-    
-    // Tablero pequeño
     private JPanel[][] celdasPropias = new JPanel[10][10];
     
-    // Labels de estadísticas
-    private JLabel labelAciertos;
-    private JLabel labelFallos;
-    private JLabel labelBarcosHundidos;
+    // Estadísticas UI
+    private JLabel labelAciertos, labelFallos, labelBarcosHundidos;
+    private JButton botonSuperDisparo, botonMegaDisparo, botonPasarTurno;
     
-    // Botones
-    private JButton botonSuperDisparo;
-    private JButton botonMegaDisparo;
-    private JButton botonGuardar;
-    
-    // Datos del juego
-    private int[] aciertos = {0, 0};
-    private int[] fallos = {0, 0};
-    private int[] barcosHundidosContador = {0, 0};
-    private int[] superDisparos = new int[2];
-    private int[] megaDisparos = new int[2];
-    
-    private int jugadorActual;
+    // Lógica del Juego
+    private Jugador j1;
+    private Jugador j2;
+    private Jugador jugadorActual;
+    private Jugador oponente;
+
     private int turnosTotales = 0;
-    
-    private boolean[][] tableroJugador1;
-    private boolean[][] tableroJugador2;
-    private boolean[][] disparosJugador1 = new boolean[10][10];
-    private boolean[][] disparosJugador2 = new boolean[10][10];
-    private boolean[][] impactosEnTablero1 = new boolean[10][10];
-    private boolean[][] impactosEnTablero2 = new boolean[10][10];
-    
-    private int totalCasillasBarcoJ1 = 0;
-    private int totalCasillasBarcoJ2 = 0;
-    private int casillasAcertadasPorJ1 = 0;
-    private int casillasAcertadasPorJ2 = 0;
-    
-    private EstadisticasDAO estadisticasDAO;
-    
     private boolean superDisparoActivo = false;
     private boolean megaDisparoActivo = false;
     private boolean yaDisparo = false;
+    
+    // --- NUEVAS VARIABLES PARA EL TIEMPO ---
+    private int segundosTurnoActual = 0;      // Tiempo que ve el jugador ahora
+    private int segundosTotalesPartida = 0;   // Acumulador de toda la partida
+    private volatile boolean cronometroPausado = false; // Para detenerlo al cambiar turno
+    // ---------------------------------------
+    
+    private Thread hiloCronometro;
+    private volatile boolean juegoActivo = true;
+    private EstadisticasDAO estadisticasDAO;
 
-    public VentanaJuego(int numeroJugador, int superDisparosIniciales, int megaDisparosIniciales, 
+    public VentanaJuego(int numeroJugadorInicial, int superDisparos, int megaDisparos, 
                         boolean[][] tableroJ1, boolean[][] tableroJ2) {
-        this.jugadorActual = numeroJugador;
-        this.superDisparos[0] = superDisparosIniciales;
-        this.superDisparos[1] = superDisparosIniciales;
-        this.megaDisparos[0] = megaDisparosIniciales;
-        this.megaDisparos[1] = megaDisparosIniciales;
+        
+        this.j1 = new Jugador(1, tableroJ1, superDisparos, megaDisparos);
+        this.j2 = new Jugador(2, tableroJ2, superDisparos, megaDisparos);
         this.estadisticasDAO = new EstadisticasDAO();
-        
-        this.tableroJugador1 = tableroJ1;
-        this.tableroJugador2 = tableroJ2;
-        
-        // Contar casillas
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                if (tableroJugador1[i][j]) totalCasillasBarcoJ1++;
-                if (tableroJugador2[i][j]) totalCasillasBarcoJ2++;
-            }
+
+        if (numeroJugadorInicial == 1) {
+            configurarTurno(j1, j2);
+        } else {
+            configurarTurno(j2, j1);
         }
 
-        setTitle("Hundir la Flota - Turno del Jugador " + jugadorActual);
+        configurarVentana();
+        inicializarComponentes();
+        actualizarInterfaz();
+        iniciarCronometro(); // Arranca el hilo
+    }
+    
+    private void configurarTurno(Jugador actual, Jugador enemigo) {
+        this.jugadorActual = actual;
+        this.oponente = enemigo;
+    }
+
+    private void configurarVentana() {
+        setTitle("Hundir la Flota - Batalla Naval");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(700, 550); // Un poco más alto para el tiempo
+        setSize(800, 600);
         setLocationRelativeTo(null);
         setResizable(false);
+    }
 
+    private void inicializarComponentes() {
         JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
-        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         setContentPane(panelPrincipal);
 
-        // --- PANEL SUPERIOR (Estadísticas + TIEMPO) ---
-        JPanel panelInfoSuperior = new JPanel(new BorderLayout());
+        // --- TOP PANEL ---
+        JPanel panelInfo = new JPanel(new BorderLayout());
         
-        // Panel de estadísticas
-        JPanel panelEstadisticas = new JPanel();
-        panelEstadisticas.setLayout(new BoxLayout(panelEstadisticas, BoxLayout.X_AXIS));
+        JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        labelAciertos = crearLabelEstilo("Aciertos: 0", new Color(0, 128, 0));
+        labelFallos = crearLabelEstilo("Fallos: 0", Color.RED);
+        labelBarcosHundidos = crearLabelEstilo("Barcos: 0", Color.BLUE);
         
-        labelAciertos = new JLabel("Aciertos: 0");
-        labelAciertos.setFont(new Font("Arial", Font.BOLD, 14));
-        labelAciertos.setForeground(new Color(0, 128, 0));
+        statsPanel.add(labelAciertos);
+        statsPanel.add(labelFallos);
+        statsPanel.add(labelBarcosHundidos);
         
-        labelFallos = new JLabel("Fallos: 0");
-        labelFallos.setFont(new Font("Arial", Font.BOLD, 14));
-        labelFallos.setForeground(Color.RED);
-        
-        labelBarcosHundidos = new JLabel("Barcos hundidos: 0");
-        labelBarcosHundidos.setFont(new Font("Arial", Font.BOLD, 14));
-        labelBarcosHundidos.setForeground(Color.BLUE);
-        
-        panelEstadisticas.add(labelAciertos);
-        panelEstadisticas.add(Box.createHorizontalStrut(20));
-        panelEstadisticas.add(labelFallos);
-        panelEstadisticas.add(Box.createHorizontalStrut(20));
-        panelEstadisticas.add(labelBarcosHundidos);
-
-        // --- AQUÍ ESTÁ EL REQUISITO DEL HILO ---
-        labelTiempo = new JLabel("Tiempo: 00:00");
-        labelTiempo.setFont(new Font("Monospaced", Font.BOLD, 16));
+        labelTiempo = new JLabel("00:00");
+        labelTiempo.setFont(new Font("Monospaced", Font.BOLD, 20));
         labelTiempo.setForeground(Color.DARK_GRAY);
-        labelTiempo.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
         
-        panelInfoSuperior.add(panelEstadisticas, BorderLayout.WEST);
-        panelInfoSuperior.add(labelTiempo, BorderLayout.EAST); // Reloj a la derecha
+        panelInfo.add(statsPanel, BorderLayout.WEST);
+        panelInfo.add(labelTiempo, BorderLayout.EAST);
         
-        panelPrincipal.add(panelInfoSuperior, BorderLayout.NORTH);
+        labelInfoJugador = new JLabel("Turno del JUGADOR " + jugadorActual.getId(), SwingConstants.CENTER);
+        labelInfoJugador.setFont(new Font("Arial", Font.BOLD, 18));
+        panelInfo.add(labelInfoJugador, BorderLayout.SOUTH);
 
-        // Panel central (Tablero de ataque)
+        panelPrincipal.add(panelInfo, BorderLayout.NORTH);
+
+        // --- CENTER (TABLERO ATAQUE) ---
         JPanel panelTableroAtaque = new JPanel(new GridLayout(10, 10));
-        panelTableroAtaque.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Color.BLACK, 2), "Tablero del Oponente (Dispara aquí)"));
-        panelTableroAtaque.setPreferredSize(new Dimension(380, 380));
+        panelTableroAtaque.setBorder(BorderFactory.createTitledBorder("RADAR DE ATAQUE (Oponente)"));
         
-        for (int fila = 0; fila < 10; fila++) {
-            for (int col = 0; col < 10; col++) {
-                JButton celda = new JButton();
-                celda.setBackground(new Color(0, 150, 200));
-                celda.setFocusPainted(false);
-                celdasAtaque[fila][col] = celda;
-
-                int f = fila, c = col;
-                celda.addActionListener(e -> procesarDisparo(f, c));
-
-                panelTableroAtaque.add(celda);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                JButton btn = new JButton();
+                btn.setBackground(new Color(0, 150, 200));
+                btn.setFocusPainted(false);
+                int r = i, c = j;
+                btn.addActionListener(e -> procesarClicCelda(r, c));
+                celdasAtaque[i][j] = btn;
+                panelTableroAtaque.add(btn);
             }
         }
         panelPrincipal.add(panelTableroAtaque, BorderLayout.CENTER);
 
-        // Panel derecho
+        // --- RIGHT (CONTROLES Y TABLERO PROPIO) ---
         JPanel panelDerecho = new JPanel();
         panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout.Y_AXIS));
-        panelDerecho.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        panelDerecho.setPreferredSize(new Dimension(200, 400));
-
-        // Tablero pequeño
-        JLabel labelTableroPropio = new JLabel("Tu tablero:");
-        labelTableroPropio.setAlignmentX(LEFT_ALIGNMENT);
-        panelDerecho.add(labelTableroPropio);
-        panelDerecho.add(Box.createVerticalStrut(5));
+        panelDerecho.setPreferredSize(new Dimension(250, 0));
         
-        JPanel panelTableroPropio = new JPanel(new GridLayout(10, 10));
-        panelTableroPropio.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        panelTableroPropio.setPreferredSize(new Dimension(150, 150));
-        panelTableroPropio.setMaximumSize(new Dimension(150, 150));
-        panelTableroPropio.setAlignmentX(LEFT_ALIGNMENT);
+        panelDerecho.add(new JLabel("Tu Flota:"));
+        JPanel miniTablero = new JPanel(new GridLayout(10, 10));
+        miniTablero.setPreferredSize(new Dimension(200, 200));
+        miniTablero.setMaximumSize(new Dimension(200, 200));
+        miniTablero.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         
-        for (int fila = 0; fila < 10; fila++) {
-            for (int col = 0; col < 10; col++) {
-                JPanel celda = new JPanel();
-                celda.setBackground(new Color(0, 150, 200));
-                celda.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
-                celdasPropias[fila][col] = celda;
-                panelTableroPropio.add(celda);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                JPanel p = new JPanel();
+                p.setBackground(new Color(0, 150, 200));
+                celdasPropias[i][j] = p;
+                miniTablero.add(p);
             }
         }
-        panelDerecho.add(panelTableroPropio);
+        panelDerecho.add(miniTablero);
         panelDerecho.add(Box.createVerticalStrut(20));
-
-        // Disparos especiales
-        JLabel labelDisparos = new JLabel("DISPAROS ESPECIALES:");
-        labelDisparos.setFont(new Font("Arial", Font.BOLD, 12));
-        labelDisparos.setAlignmentX(LEFT_ALIGNMENT);
-        panelDerecho.add(labelDisparos);
+        
+        botonSuperDisparo = new JButton("Super Disparo");
+        botonSuperDisparo.addActionListener(e -> activarHabilidad(true, false));
+        
+        botonMegaDisparo = new JButton("Mega Disparo");
+        botonMegaDisparo.addActionListener(e -> activarHabilidad(false, true));
+        
+        botonPasarTurno = new JButton("TERMINAR TURNO");
+        botonPasarTurno.setBackground(new Color(100, 180, 100));
+        botonPasarTurno.setFont(new Font("Arial", Font.BOLD, 14));
+        botonPasarTurno.addActionListener(e -> cambiarTurno());
+        
+        panelDerecho.add(alinearBoton(botonSuperDisparo));
         panelDerecho.add(Box.createVerticalStrut(10));
-
-        botonSuperDisparo = new JButton("Super Disparo (" + superDisparos[0] + ")");
-        botonSuperDisparo.setMaximumSize(new Dimension(180, 35));
-        botonSuperDisparo.setAlignmentX(LEFT_ALIGNMENT);
-        botonSuperDisparo.addActionListener(e -> activarSuperDisparo());
-        panelDerecho.add(botonSuperDisparo);
-        panelDerecho.add(Box.createVerticalStrut(10));
-
-        botonMegaDisparo = new JButton("Mega Disparo (" + megaDisparos[0] + ")");
-        botonMegaDisparo.setMaximumSize(new Dimension(180, 35));
-        botonMegaDisparo.setAlignmentX(LEFT_ALIGNMENT);
-        botonMegaDisparo.addActionListener(e -> activarMegaDisparo());
-        panelDerecho.add(botonMegaDisparo);
+        panelDerecho.add(alinearBoton(botonMegaDisparo));
         panelDerecho.add(Box.createVerticalGlue());
-
-        botonGuardar = new JButton("Pasar Turno");
-        botonGuardar.setMaximumSize(new Dimension(180, 40));
-        botonGuardar.setAlignmentX(LEFT_ALIGNMENT);
-        botonGuardar.setBackground(new Color(100, 180, 100));
-        botonGuardar.addActionListener(e -> cambiarJugador());
-        panelDerecho.add(botonGuardar);
+        panelDerecho.add(alinearBoton(botonPasarTurno));
 
         panelPrincipal.add(panelDerecho, BorderLayout.EAST);
-        
-        actualizarTableroPropio();
-        actualizarEstadisticas();
-        actualizarBotonesDisparos();
-        
-        // Inicio del hilo
-        iniciarCronometro();
     }
 
-    // Codigo del hilo
-    private void iniciarCronometro() {
-        hiloCronometro = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int segundosTotales = 0;
-                while (juegoActivo) {
-                    try {
-                        Thread.sleep(1000); // Pausa de 1 segundo
-                        segundosTotales++;
-                        
-                        // Cálculos de minutos y segundos
-                        int minutos = segundosTotales / 60;
-                        int segundos = segundosTotales % 60;
-                        
-                        // Formatear texto (ej: 02:05)
-                        String tiempoTexto = String.format("Tiempo: %02d:%02d", minutos, segundos);
-                        
-                        // Actualizar la interfaz de forma segura
-                        SwingUtilities.invokeLater(() -> labelTiempo.setText(tiempoTexto));
-                        
-                    } catch (InterruptedException e) {
-                        System.out.println("Cronómetro interrumpido");
-                        return;
-                    }
-                }
-            }
-        });
-        hiloCronometro.start();
-    }
-
-    // --- MÉTODOS EXISTENTES DEL JUEGO ---
-
-    private void actualizarTableroPropio() {
-        boolean[][] tableroActual = (jugadorActual == 1) ? tableroJugador1 : tableroJugador2;
-        boolean[][] impactosRecibidos = (jugadorActual == 1) ? impactosEnTablero1 : impactosEnTablero2;
-        
-        for (int fila = 0; fila < 10; fila++) {
-            for (int col = 0; col < 10; col++) {
-                if (impactosRecibidos[fila][col]) {
-                    celdasPropias[fila][col].setBackground(tableroActual[fila][col] ?  Color.RED : Color.WHITE);
-                } else if (tableroActual[fila][col]) {
-                    celdasPropias[fila][col].setBackground(Color.GRAY);
-                } else {
-                    celdasPropias[fila][col].setBackground(new Color(0, 150, 200));
-                }
-            }
-        }
+    private JLabel crearLabelEstilo(String texto, Color color) {
+        JLabel l = new JLabel(texto);
+        l.setFont(new Font("Arial", Font.BOLD, 14));
+        l.setForeground(color);
+        return l;
     }
     
-    private void actualizarTableroAtaque() {
-        boolean[][] disparosActuales = (jugadorActual == 1) ? disparosJugador1 : disparosJugador2;
-        boolean[][] tableroOponente = (jugadorActual == 1) ?  tableroJugador2 : tableroJugador1;
-        
-        for (int fila = 0; fila < 10; fila++) {
-            for (int col = 0; col < 10; col++) {
-                if (disparosActuales[fila][col]) {
-                    if (tableroOponente[fila][col]) {
-                        celdasAtaque[fila][col].setBackground(Color.RED);
-                        celdasAtaque[fila][col].setText("X");
-                    } else {
-                        celdasAtaque[fila][col].setBackground(Color.WHITE);
-                        celdasAtaque[fila][col].setText("•");
-                    }
-                    celdasAtaque[fila][col].setEnabled(false);
-                } else {
-                    celdasAtaque[fila][col].setBackground(new Color(0, 150, 200));
-                    celdasAtaque[fila][col].setText("");
-                    celdasAtaque[fila][col].setEnabled(true);
-                }
-            }
-        }
-    }
-    
-    private void actualizarEstadisticas() {
-        int idx = jugadorActual - 1;
-        labelAciertos.setText("Aciertos: " + aciertos[idx]);
-        labelFallos.setText("Fallos: " + fallos[idx]);
-        labelBarcosHundidos.setText("Barcos hundidos: " + barcosHundidosContador[idx]);
-    }
-    
-    private void actualizarBotonesDisparos() {
-        int idx = jugadorActual - 1;
-        botonSuperDisparo.setText("Super Disparo (" + superDisparos[idx] + ")");
-        botonMegaDisparo.setText("Mega Disparo (" + megaDisparos[idx] + ")");
+    private Component alinearBoton(JButton b) {
+        b.setAlignmentX(Component.CENTER_ALIGNMENT);
+        b.setMaximumSize(new Dimension(220, 40));
+        return b;
     }
 
-    private void procesarDisparo(int fila, int columna) {
-        boolean[][] disparosActuales = (jugadorActual == 1) ?  disparosJugador1 : disparosJugador2;
-        
-        if (disparosActuales[fila][columna]) {
-            JOptionPane.showMessageDialog(this, "Ya disparaste en esta casilla", 
-                "Disparo inválido", JOptionPane.WARNING_MESSAGE);
+    // --- LÓGICA DEL JUEGO ---
+
+    private void procesarClicCelda(int fila, int col) {
+        if (yaDisparo) {
+            JOptionPane.showMessageDialog(this, "Ya has disparado. Pasa el turno.");
             return;
         }
-        
+
         if (superDisparoActivo) {
-            ejecutarSuperDisparo(fila, columna);
-            superDisparoActivo = false;
-            yaDisparo = true;
-            return;
-        }
-        
-        if (megaDisparoActivo) {
-            ejecutarMegaDisparo(fila, columna);
-            megaDisparoActivo = false;
-            yaDisparo = true;
-            return;
-        }
-        
-        ejecutarDisparoNormal(fila, columna);
-        yaDisparo = true;
-        deshabilitarTableroAtaque();
-    }
-    
-    private void deshabilitarTableroAtaque() {
-        for (int fila = 0; fila < 10; fila++) {
-            for (int col = 0; col < 10; col++) {
-                celdasAtaque[fila][col].setEnabled(false);
-            }
+            ejecutarSuperDisparo(fila, col);
+        } else if (megaDisparoActivo) {
+            ejecutarMegaDisparo(fila, col);
+        } else {
+            ejecutarDisparoSimple(fila, col);
         }
     }
 
-    private boolean ejecutarDisparoEnPosicion(int fila, int columna) {
-        if (fila < 0 || fila >= 10 || columna < 0 || columna >= 10) {
-            return false;
+    private void ejecutarDisparoSimple(int fila, int col) {
+        if (jugadorActual.getTableroDisparos()[fila][col]) {
+            JOptionPane.showMessageDialog(this, "Ya disparaste aquí.");
+            return;
+        }
+
+        boolean impacto = procesarImpacto(fila, col);
+        yaDisparo = true;
+        
+        if (impacto) {
+            JOptionPane.showMessageDialog(this, "¡IMPACTO!", "Boom", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Agua...", "Splash", JOptionPane.INFORMATION_MESSAGE);
         }
         
-        boolean[][] disparosActuales = (jugadorActual == 1) ?  disparosJugador1 : disparosJugador2;
-        boolean[][] tableroOponente = (jugadorActual == 1) ? tableroJugador2 : tableroJugador1;
-        boolean[][] impactosEnTableroOponente = (jugadorActual == 1) ? impactosEnTablero2 : impactosEnTablero1;
+        verificarVictoria();
+        actualizarInterfaz();
+    }
+    
+    private boolean procesarImpacto(int fila, int col) {
+        if (fila < 0 || fila >= 10 || col < 0 || col >= 10) return false;
         
-        if (disparosActuales[fila][columna]) {
-            return false;
-        }
-        
-        disparosActuales[fila][columna] = true;
-        impactosEnTableroOponente[fila][columna] = true;
-        int idx = jugadorActual - 1;
-        
-        if (tableroOponente[fila][columna]) {
-            celdasAtaque[fila][columna].setBackground(Color.RED);
-            celdasAtaque[fila][columna].setText("X");
-            celdasAtaque[fila][columna].setEnabled(false);
-            aciertos[idx]++;
-            
-            if (jugadorActual == 1) {
-                casillasAcertadasPorJ1++;
-            } else {
-                casillasAcertadasPorJ2++;
-            }
+        if (jugadorActual.getTableroDisparos()[fila][col]) return false;
+
+        jugadorActual.getTableroDisparos()[fila][col] = true;
+        oponente.getImpactosRecibidos()[fila][col] = true;
+
+        if (oponente.getTableroPropio()[fila][col]) {
+            jugadorActual.incrementarAciertos();
+            oponente.recibirImpacto();
             return true;
         } else {
-            celdasAtaque[fila][columna].setBackground(Color.WHITE);
-            celdasAtaque[fila][columna].setText("•");
-            celdasAtaque[fila][columna].setEnabled(false);
-            fallos[idx]++;
+            jugadorActual.incrementarFallos();
             return false;
         }
     }
-    
-    private void ejecutarDisparoNormal(int fila, int columna) {
-        boolean acierto = ejecutarDisparoEnPosicion(fila, columna);
-        actualizarEstadisticas();
+
+    private void ejecutarSuperDisparo(int r, int c) {
+        if (jugadorActual.getSuperDisparos() <= 0) return;
+
+        int[][] coords = {{r,c}, {r-1,c}, {r+1,c}, {r,c-1}, {r,c+1}};
+        int aciertos = 0;
         
-        if (verificarVictoria()) {
+        for (int[] par : coords) {
+            if (procesarImpacto(par[0], par[1])) aciertos++;
+        }
+        
+        jugadorActual.usarSuperDisparo();
+        finalizarAtaqueEspecial("Super Disparo", aciertos);
+    }
+
+    private void ejecutarMegaDisparo(int r, int c) {
+        if (jugadorActual.getMegaDisparos() <= 0) return;
+
+        int aciertos = 0;
+        for (int i = r - 1; i <= r + 1; i++) {
+            for (int j = c - 1; j <= c + 1; j++) {
+                if (procesarImpacto(i, j)) aciertos++;
+            }
+        }
+        
+        jugadorActual.usarMegaDisparo();
+        finalizarAtaqueEspecial("Mega Disparo", aciertos);
+    }
+    
+    private void finalizarAtaqueEspecial(String nombre, int aciertos) {
+        superDisparoActivo = false;
+        megaDisparoActivo = false;
+        yaDisparo = true;
+        verificarVictoria();
+        actualizarInterfaz();
+        JOptionPane.showMessageDialog(this, nombre + " completado.\nImpactos: " + aciertos);
+    }
+
+    private void activarHabilidad(boolean esSuper, boolean esMega) {
+        if (yaDisparo) {
+            JOptionPane.showMessageDialog(this, "Ya disparaste.");
             return;
         }
         
-        if (acierto) {
-            JOptionPane.showMessageDialog(this, "¡ACIERTO! Has impactado un barco.", 
-                "¡Boom!", JOptionPane.INFORMATION_MESSAGE);
+        if (esSuper && jugadorActual.getSuperDisparos() > 0) {
+            superDisparoActivo = true;
+            megaDisparoActivo = false;
+            JOptionPane.showMessageDialog(this, "Modo SUPER activo (Cruz). Elige objetivo.");
+        } else if (esMega && jugadorActual.getMegaDisparos() > 0) {
+            megaDisparoActivo = true;
+            superDisparoActivo = false;
+            JOptionPane.showMessageDialog(this, "Modo MEGA activo (3x3). Elige objetivo.");
         } else {
-            JOptionPane.showMessageDialog(this, "Agua... Has fallado.", 
-                "Splash", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No te quedan disparos especiales de este tipo.");
         }
     }
 
-    private void cambiarJugador() {
-        if (! yaDisparo) {
-            int respuesta = JOptionPane.showConfirmDialog(this,
-                "No has disparado este turno. ¿Seguro que quieres pasar? ",
-                "Confirmar", JOptionPane.YES_NO_OPTION);
-            if (respuesta != JOptionPane.YES_OPTION) return;
+    private void verificarVictoria() {
+        if (oponente.haPerdido()) {
+            juegoActivo = false;
+            
+            // Calculamos el tiempo FINAL total
+            int tiempoFinal = segundosTotalesPartida + segundosTurnoActual;
+            String tiempoFormateado = formatearTiempo(tiempoFinal);
+            
+            estadisticasDAO.guardarPartida("Jugador " + jugadorActual.getId(), turnosTotales, 5); 
+            
+            JOptionPane.showMessageDialog(this, 
+                "¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" +
+                "Turnos totales: " + turnosTotales + "\n" +
+                "Duración de la partida: " + tiempoFormateado,
+                "VICTORIA", JOptionPane.INFORMATION_MESSAGE);
+            
+            dispose();
+            new gui.MainMenu().setVisible(true);
         }
+    }
+
+    // --- AQUÍ ESTÁ LA LÓGICA DEL CAMBIO DE TURNO Y TIEMPO ---
+    private void cambiarTurno() {
+        if (!yaDisparo) {
+            int confirm = JOptionPane.showConfirmDialog(this, "¿Pasar sin disparar?", "Confirmar", JOptionPane.YES_NO_OPTION);
+            if (confirm != JOptionPane.YES_OPTION) return;
+        }
+
+        // 1. Pausar cronómetro
+        cronometroPausado = true;
+        
+        // 2. Acumular el tiempo del turno al total
+        segundosTotalesPartida += segundosTurnoActual;
         
         turnosTotales++;
         
-        JOptionPane.showMessageDialog(this,
-            "Pasa el dispositivo al Jugador " + (jugadorActual == 1 ? 2 : 1) + "\n\nPulsa OK cuando esté listo.",
-            "Cambio de Turno", JOptionPane.INFORMATION_MESSAGE);
+        // 3. Diálogo de espera (mientras está abierto, el tiempo no corre gracias a cronometroPausado)
+        JOptionPane.showMessageDialog(this, 
+            "Fin del turno. Tiempo acumulado partida: " + formatearTiempo(segundosTotalesPartida) + "\n\n" +
+            "Pasa el dispositivo al OTRO jugador.",
+            "Cambio de Jugador", JOptionPane.INFORMATION_MESSAGE);
         
-        jugadorActual = (jugadorActual == 1) ? 2 : 1;
+        // 4. Intercambio de roles
+        Jugador temp = jugadorActual;
+        jugadorActual = oponente;
+        oponente = temp;
+        
+        // 5. Resetear estado para el nuevo turno
         yaDisparo = false;
         superDisparoActivo = false;
         megaDisparoActivo = false;
         
-        setTitle("Hundir la Flota - Turno del Jugador " + jugadorActual);
-        actualizarTableroAtaque();
-        actualizarTableroPropio();
-        actualizarEstadisticas();
-        actualizarBotonesDisparos();
+        // 6. REINICIAR el contador visual del turno
+        segundosTurnoActual = 0; 
+        labelTiempo.setText("00:00");
+        
+        // 7. Reanudar cronómetro
+        cronometroPausado = false;
+        
+        actualizarInterfaz();
     }
-    
-    private void activarSuperDisparo() {
-        int idx = jugadorActual - 1;
+
+    private void actualizarInterfaz() {
+        labelInfoJugador.setText("Turno del JUGADOR " + jugadorActual.getId());
+        labelAciertos.setText("Aciertos: " + jugadorActual.getAciertos());
+        labelFallos.setText("Fallos: " + jugadorActual.getFallos());
         
-        if (superDisparos[idx] <= 0) {
-            JOptionPane.showMessageDialog(this, "No te quedan Super Disparos", 
-                "Sin disparos especiales", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        botonSuperDisparo.setText("Super Disparo (" + jugadorActual.getSuperDisparos() + ")");
+        botonMegaDisparo.setText("Mega Disparo (" + jugadorActual.getMegaDisparos() + ")");
         
-        if (yaDisparo) {
-            JOptionPane.showMessageDialog(this, "Ya has disparado este turno. Pasa el turno primero.", 
-                "Turno usado", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        boolean[][] disparos = jugadorActual.getTableroDisparos();
+        boolean[][] barcosEnemigos = oponente.getTableroPropio(); 
         
-        superDisparoActivo = true;
-        megaDisparoActivo = false;
-        
-        JOptionPane.showMessageDialog(this, 
-            "Super Disparo activado.\nDispara en CRUZ (5 casillas).\nSelecciona el centro del disparo.", 
-            "Super Disparo", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    private void ejecutarSuperDisparo(int fila, int columna) {
-        int idx = jugadorActual - 1;
-        superDisparos[idx]--;
-        actualizarBotonesDisparos();
-        
-        int totalAciertos = 0;
-        int[][] posiciones = {
-            {fila, columna}, {fila - 1, columna}, {fila + 1, columna},
-            {fila, columna - 1}, {fila, columna + 1}
-        };
-        
-        for (int[] pos : posiciones) {
-            if (ejecutarDisparoEnPosicion(pos[0], pos[1])) {
-                totalAciertos++;
-            }
-        }
-        
-        actualizarEstadisticas();
-        
-        if (verificarVictoria()) {
-            return;
-        }
-        
-        deshabilitarTableroAtaque();
-        JOptionPane.showMessageDialog(this, 
-            "Super Disparo ejecutado.\nAciertos: " + totalAciertos + " de 5 casillas.", 
-            "Resultado", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    private void activarMegaDisparo() {
-        int idx = jugadorActual - 1;
-        
-        if (megaDisparos[idx] <= 0) {
-            JOptionPane.showMessageDialog(this, "No te quedan Mega Disparos", 
-                "Sin disparos especiales", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        if (yaDisparo) {
-            JOptionPane.showMessageDialog(this, "Ya has disparado este turno. Pasa el turno primero.", 
-                "Turno usado", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        megaDisparoActivo = true;
-        superDisparoActivo = false;
-        
-        JOptionPane.showMessageDialog(this, 
-            "Mega Disparo activado.\nDispara en ÁREA 3x3 (9 casillas).\nSelecciona el centro del disparo.", 
-            "Mega Disparo", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    private void ejecutarMegaDisparo(int fila, int columna) {
-        int idx = jugadorActual - 1;
-        megaDisparos[idx]--;
-        actualizarBotonesDisparos();
-        
-        int totalAciertos = 0;
-        for (int f = fila - 1; f <= fila + 1; f++) {
-            for (int c = columna - 1; c <= columna + 1; c++) {
-                if (ejecutarDisparoEnPosicion(f, c)) {
-                    totalAciertos++;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (disparos[i][j]) {
+                    celdasAtaque[i][j].setEnabled(false);
+                    if (barcosEnemigos[i][j]) {
+                        celdasAtaque[i][j].setBackground(Color.RED);
+                        celdasAtaque[i][j].setText("X");
+                    } else {
+                        celdasAtaque[i][j].setBackground(Color.CYAN); 
+                        celdasAtaque[i][j].setText("O");
+                    }
+                } else {
+                    celdasAtaque[i][j].setEnabled(true);
+                    celdasAtaque[i][j].setBackground(new Color(0, 150, 200));
+                    celdasAtaque[i][j].setText("");
                 }
             }
         }
+
+        boolean[][] miTablero = jugadorActual.getTableroPropio();
+        boolean[][] misDaños = jugadorActual.getImpactosRecibidos();
         
-        actualizarEstadisticas();
-        
-        if (verificarVictoria()) {
-            return;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (misDaños[i][j]) {
+                    celdasPropias[i][j].setBackground(miTablero[i][j] ? Color.RED : Color.CYAN);
+                } else {
+                    celdasPropias[i][j].setBackground(miTablero[i][j] ? Color.GRAY : new Color(0, 150, 200));
+                }
+            }
         }
-        
-        deshabilitarTableroAtaque();
-        JOptionPane.showMessageDialog(this, 
-            "Mega Disparo ejecutado.\nAciertos: " + totalAciertos + " de 9 casillas.", 
-            "Resultado", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    private boolean verificarVictoria() {
-        int casillasNecesarias;
-        int casillasAcertadas;
-        
-        if (jugadorActual == 1) {
-            casillasNecesarias = totalCasillasBarcoJ2;
-            casillasAcertadas = casillasAcertadasPorJ1;
-        } else {
-            casillasNecesarias = totalCasillasBarcoJ1;
-            casillasAcertadas = casillasAcertadasPorJ2;
-        }
-        
-        if (casillasAcertadas >= casillasNecesarias) {
-            finalizarPartida(jugadorActual);
-            return true;
-        }
-        
-        return false;
+    // --- NUEVA LÓGICA DEL CRONÓMETRO ---
+    private void iniciarCronometro() {
+        hiloCronometro = new Thread(() -> {
+            while (juegoActivo) {
+                try {
+                    Thread.sleep(1000);
+                    
+                    // Solo contamos si NO está pausado (ej: durante el popup de cambio de turno)
+                    if (!cronometroPausado) {
+                        segundosTurnoActual++;
+                        String tiempo = formatearTiempo(segundosTurnoActual);
+                        SwingUtilities.invokeLater(() -> labelTiempo.setText(tiempo));
+                    }
+                    
+                } catch (InterruptedException e) { return; }
+            }
+        });
+        hiloCronometro.start();
     }
     
-    private void finalizarPartida(int jugadorGanador) {
-        // Detener hilo
-        juegoActivo = false;
-        
-        JOptionPane.showMessageDialog(this, 
-            "¡FELICIDADES!\n\nEl Jugador " + jugadorGanador + " ha GANADO la partida!\n\n" +
-            "Tiempo total: " + labelTiempo.getText() + "\n" +
-            "Turnos totales: " + turnosTotales,
-            "¡¡¡VICTORIA!!!", JOptionPane.INFORMATION_MESSAGE);
-        
-        // Guardar en BD
-        String ganador = "Jugador " + jugadorGanador;
-        estadisticasDAO.guardarPartida(ganador, turnosTotales, barcosHundidosContador[jugadorGanador -1]);
-        
-        int respuesta = JOptionPane.showConfirmDialog(this,
-            "¿Quieres jugar otra partida?", "Nueva Partida", JOptionPane.YES_NO_OPTION);
-        
-        if (respuesta == JOptionPane.YES_OPTION) {
-            MainMenu menu = new MainMenu();
-            menu.setVisible(true);
-        }
-        
-        dispose();
+    // Método auxiliar para formatear mm:ss
+    private String formatearTiempo(int totalSegundos) {
+        int min = totalSegundos / 60;
+        int seg = totalSegundos % 60;
+        return String.format("%02d:%02d", min, seg);
     }
 }
