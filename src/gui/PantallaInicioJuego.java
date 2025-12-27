@@ -14,15 +14,11 @@ import javax.swing.SwingConstants;
 public class PantallaInicioJuego extends JFrame {
     private static final long serialVersionUID = 1L;
     
-    private int superDisparos;
-    private int megaDisparos;
     private boolean[][] tableroJugador1;
     private boolean[][] tableroJugador2;
     
     public PantallaInicioJuego(int superDisparos, int megaDisparos, 
                                boolean[][] tableroJ1, boolean[][] tableroJ2) {
-        this.superDisparos = superDisparos;
-        this.megaDisparos = megaDisparos;
         this.tableroJugador1 = tableroJ1;
         this.tableroJugador2 = tableroJ2;
         

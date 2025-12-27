@@ -1,8 +1,22 @@
 package main;
 
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
+import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -11,196 +25,231 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.TransferHandler;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
 public class ColocarBarcos extends JFrame {
 
     private static final long serialVersionUID = 1L;
-
-    // Componentes
-    private String equipoJugador;
     private JTable tabla;
     private ModeloTablero modeloDatos;
     private JRadioButton orientacionHorizontal;
     private JRadioButton orientacionVertical;
-    // Datos
+    
     private Map<Integer, Integer> barcosDisponibles;
     private Map<Integer, Integer> barcosOriginales;
     private Map<Integer, JLabel> labelsDisponibilidad = new HashMap<>();
     
-    // Imagen
     private BufferedImage imagenBarcoOriginal;
+    private String nombreEquipo; 
 
-    public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, String equipoJugador, Consumer<boolean[][]> onGuardar) {
+    public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, String nombreEquipo, Consumer<boolean[][]> onGuardar) {
+        
+        this.nombreEquipo = nombreEquipo; 
         this.barcosDisponibles = new HashMap<>(configBarcos);
         this.barcosOriginales = new HashMap<>(configBarcos);
-        this.equipoJugador = equipoJugador;
+
         cargarImagenBarco();
 
-        setTitle("Colocar Barcos (Modo Tabla) - Jugador " + numeroJugador);
+        setTitle("Despliegue - Jugador " + numeroJugador + " (" + nombreEquipo + ")");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(850, 600);
+        setSize(1000, 700); // Un poco más grande la ventana general
         setLocationRelativeTo(null);
         setResizable(false);
-        setLayout(new BorderLayout());
+        
+        GradientPanel mainPanel = new GradientPanel();
+        mainPanel.setLayout(new BorderLayout());
+        setContentPane(mainPanel);
 
-       
+        // Título
         JPanel panelSuperior = new JPanel();
-        panelSuperior.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        JLabel titulo = new JLabel("Arrastra los barcos a la tabla");
-        titulo.setFont(new Font("Arial", Font.BOLD, 18));
+        panelSuperior.setOpaque(false);
+        panelSuperior.setBorder(new EmptyBorder(20, 0, 10, 0));
+        JLabel titulo = new JLabel("DESPLIEGUE: JUGADOR " + numeroJugador, SwingConstants.CENTER);
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titulo.setForeground(Color.WHITE);
         panelSuperior.add(titulo);
-        add(panelSuperior, BorderLayout.NORTH);
+        mainPanel.add(panelSuperior, BorderLayout.NORTH);
 
-        
-        // Modelo de datos personalizado (10x10)
+        // Tabla
         modeloDatos = new ModeloTablero();
-        
         tabla = new JTable(modeloDatos);
-        tabla.setRowHeight(40); // Altura de celda
-        tabla.setFillsViewportHeight(true);
+        tabla.setRowHeight(45); // Altura de celda
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.setCellSelectionEnabled(true);
         tabla.setShowGrid(true);
-        tabla.setGridColor(Color.LIGHT_GRAY);
-        tabla.setIntercellSpacing(new Dimension(1, 1)); // Espacio para ver la rejilla
-        
-        // Asignar nuestro RENDERER personalizado
+        tabla.setGridColor(new Color(255, 255, 255, 50));
         tabla.setDefaultRenderer(Object.class, new BarcoRenderer());
-        
-        // Habilitar Drop en la tabla
         tabla.setTransferHandler(new TableDropHandler());
 
-        // Panel contenedor para centrar la tabla
-        JPanel panelTablaContainer = new JPanel(new GridBagLayout());
-        panelTablaContainer.setBackground(new Color(240, 240, 240));
+        // Panel contenedor de la tabla
+        JPanel panelTabla = new JPanel(new GridBagLayout());
+        panelTabla.setOpaque(false);
         
-        // Ajustar ancho de columnas a 40px
-        for (int i = 0; i < 10; i++) {
-            tabla.getColumnModel().getColumn(i).setPreferredWidth(40);
-            tabla.getColumnModel().getColumn(i).setMinWidth(40);
-            tabla.getColumnModel().getColumn(i).setMaxWidth(40);
-        }
+        // Ancho de columnas
+        for(int i=0; i<10; i++) tabla.getColumnModel().getColumn(i).setPreferredWidth(45);
         
-        // Envolver en ScrollPane (sin barras si ajustamos bien el tamaño)
-        JScrollPane scrollPane = new JScrollPane(tabla,
-        		JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-        		JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane scroll = new JScrollPane(tabla);
+        // Calculamos tamaño exacto: 10 celdas * 45px = 450px.
+        // Sumamos un margen para cabecera (~30px) y bordes.
+        // 460 ancho x 490 alto asegura que entre todo sin scroll.
+        scroll.setPreferredSize(new Dimension(460, 490)); 
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(255,255,255,100), 2));
+        scroll.getViewport().setBackground(new Color(0, 105, 148));
         
-        scrollPane.setPreferredSize(new Dimension(403, 403)); // 10*40 + bordes
-        scrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        // QUITAMOS LAS BARRAS DE SCROLL
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
-        panelTablaContainer.add(scrollPane);
-        add(panelTablaContainer, BorderLayout.CENTER);
+        panelTabla.add(scroll);
+        mainPanel.add(panelTabla, BorderLayout.CENTER);
 
-       
-        JPanel panelDerecho = new JPanel();
-        panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout.Y_AXIS));
-        panelDerecho.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panelDerecho.setPreferredSize(new Dimension(280, 0));
+        // Panel Derecho (Controles)
+        JPanel panelDer = new JPanel();
+        panelDer.setLayout(new BoxLayout(panelDer, BoxLayout.Y_AXIS));
+        panelDer.setOpaque(false);
+        panelDer.setBorder(new EmptyBorder(20, 20, 20, 40));
+        panelDer.setPreferredSize(new Dimension(300, 0));
 
-        panelDerecho.add(new JLabel("1. Orientación:"));
-        ButtonGroup grupo = new ButtonGroup();
+        JLabel lblO = new JLabel("1. ORIENTACIÓN");
+        lblO.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblO.setForeground(Color.CYAN);
+        panelDer.add(lblO);
+
+        ButtonGroup grp = new ButtonGroup();
         orientacionHorizontal = new JRadioButton("Horizontal", true);
         orientacionVertical = new JRadioButton("Vertical");
-        grupo.add(orientacionHorizontal);
-        grupo.add(orientacionVertical);
-        panelDerecho.add(orientacionHorizontal);
-        panelDerecho.add(orientacionVertical);
+        estilizarRadio(orientacionHorizontal);
+        estilizarRadio(orientacionVertical);
+        grp.add(orientacionHorizontal); grp.add(orientacionVertical);
         
-        panelDerecho.add(Box.createVerticalStrut(20));
-        panelDerecho.add(new JLabel("2. Arrastra el nombre:"));
-        panelDerecho.add(Box.createVerticalStrut(10));
+        panelDer.add(orientacionHorizontal); panelDer.add(orientacionVertical);
+        panelDer.add(Box.createVerticalStrut(20));
+        
+        JLabel lblA = new JLabel("2. ARRASTRAR BARCOS");
+        lblA.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblA.setForeground(Color.CYAN);
+        panelDer.add(lblA);
+        panelDer.add(Box.createVerticalStrut(10));
 
-        // Crear lista de barcos arrastrables
-        configBarcos.forEach((tamano, cantidad) -> {
+        configBarcos.forEach((tam, cant) -> {
             JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            p.setOpaque(false);
             
-            JLabel lblBarco = new JLabel(" ⚓ Barco (" + tamano + ") ");
-            lblBarco.setOpaque(true);
-            lblBarco.setBackground(new Color(220, 220, 220));
-            lblBarco.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            lblBarco.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            lblBarco.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-            // Lógica de arrastre
-            lblBarco.setTransferHandler(new TransferHandler() {
-                /**
-				 * 
-				 */
-				private static final long serialVersionUID = 1L;
-
-				@Override
+            JLabel lblB = new JLabel("  ⚓ Navío (" + tam + ")  ");
+            lblB.setOpaque(true);
+            lblB.setBackground(new Color(60, 90, 110));
+            lblB.setForeground(Color.WHITE);
+            lblB.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+            lblB.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            lblB.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            lblB.setTransferHandler(new TransferHandler() {
+                private static final long serialVersionUID = 1L;
                 public int getSourceActions(JComponent c) { return COPY; }
-                
-                @Override
-                protected Transferable createTransferable(JComponent c) {
-                    return new StringSelection(String.valueOf(tamano));
-                }
+                protected Transferable createTransferable(JComponent c) { return new StringSelection(String.valueOf(tam)); }
             });
-            
-            lblBarco.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    JComponent c = (JComponent) e.getSource();
+            lblB.addMouseListener(new MouseAdapter() {
+                public void mousePressed(MouseEvent e) { 
+                    JComponent c = (JComponent)e.getSource();
                     c.getTransferHandler().exportAsDrag(c, e, TransferHandler.COPY);
                 }
             });
-
-            p.add(lblBarco);
             
-            JLabel lblCount = new JLabel("x" + cantidad);
-            labelsDisponibilidad.put(tamano, lblCount);
-            p.add(lblCount);
-            
-            panelDerecho.add(p);
+            p.add(lblB);
+            JLabel lblC = new JLabel("x" + cant);
+            lblC.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            lblC.setForeground(Color.WHITE);
+            labelsDisponibilidad.put(tam, lblC);
+            p.add(lblC);
+            panelDer.add(p);
         });
 
-        panelDerecho.add(Box.createVerticalGlue());
+        panelDer.add(Box.createVerticalGlue());
         
-        JButton btnReiniciar = new JButton("Reiniciar");
-        btnReiniciar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnReiniciar.addActionListener(e -> reiniciarTablero());
-        panelDerecho.add(btnReiniciar);
+        JButton btnR = new JButton("REINICIAR");
+        estilizarBoton(btnR, new Color(198, 40, 40));
+        btnR.addActionListener(e -> reiniciarTablero());
+        panelDer.add(btnR);
         
-        panelDerecho.add(Box.createVerticalStrut(10));
+        panelDer.add(Box.createVerticalStrut(10));
 
-        JButton btnGuardar = new JButton("GUARDAR");
-        btnGuardar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnGuardar.setBackground(new Color(100, 180, 100));
-        btnGuardar.addActionListener(e -> {
+        JButton btnG = new JButton("DESPLEGAR FLOTA");
+        estilizarBoton(btnG, new Color(46, 125, 50));
+        btnG.addActionListener(e -> {
             if (modeloDatos.contarBarcosColocados() == 0) {
-                JOptionPane.showMessageDialog(this, "Coloca algún barco antes.");
+                JOptionPane.showMessageDialog(this, "¡Comandante! Debe colocar al menos un barco.");
                 return;
             }
             dispose();
             if (onGuardar != null) onGuardar.accept(modeloDatos.getTableroBooleano());
         });
-        panelDerecho.add(btnGuardar);
+        panelDer.add(btnG);
 
-        add(panelDerecho, BorderLayout.EAST);
-        
-        actualizarLabels(); // Estado inicial
+        mainPanel.add(panelDer, BorderLayout.EAST);
+        actualizarLabels();
         setVisible(true);
     }
     
+    // --- MÉTODOS AUXILIARES ---
+
+    private void estilizarRadio(JRadioButton rb) {
+        rb.setOpaque(false);
+        rb.setForeground(Color.WHITE);
+        rb.setFocusPainted(false);
+        rb.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    }
+    
+    private void estilizarBoton(JButton btn, Color bg) {
+        btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setFocusPainted(false);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(250, 40));
+        btn.setBorder(BorderFactory.createLineBorder(new Color(255,255,255,100)));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(bg.brighter()); }
+            public void mouseExited(MouseEvent e) { btn.setBackground(bg); }
+        });
+    }
+
     private void cargarImagenBarco() {
         try {
-            File f = new File("resources/images/Ship/Ship" + equipoJugador + "Hull.png");
-            if (f.exists()) imagenBarcoOriginal = ImageIO.read(f);
-            else {
-                // Imagen fallback generada en código
-                imagenBarcoOriginal = new BufferedImage(100, 40, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = imagenBarcoOriginal.createGraphics();
-                g.setColor(Color.DARK_GRAY);
-                g.fillRect(0, 0, 100, 40);
-                g.setColor(Color.WHITE);
-                g.drawRect(0,0,99,39);
-                g.dispose();
+            String nombreArchivo = this.nombreEquipo;
+            if ("Submarine".equals(nombreArchivo)) nombreArchivo = "SubMarine";
+            String path = "resources/images/Ship/Ship" + nombreArchivo + "Hull.png";
+            File f = new File(path);
+            if (f.exists()) {
+                imagenBarcoOriginal = ImageIO.read(f);
+            } else {
+                try {
+                    imagenBarcoOriginal = ImageIO.read(getClass().getResource("/images/Ship/Ship" + nombreArchivo + "Hull.png"));
+                } catch(Exception e2) {
+                    imagenBarcoOriginal = new BufferedImage(100, 40, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = imagenBarcoOriginal.createGraphics();
+                    g.setColor(Color.DARK_GRAY); g.fillRect(0,0,100,40); g.dispose();
+                }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {}
     }
 
     private void reiniciarTablero() {
@@ -211,232 +260,101 @@ public class ColocarBarcos extends JFrame {
     }
     
     private void actualizarLabels() {
-        barcosDisponibles.forEach((tam, cant) -> {
-            JLabel l = labelsDisponibilidad.get(tam);
-            if (l != null) {
-                l.setText("x" + cant);
-                l.setForeground(cant > 0 ? new Color(0, 128, 0) : Color.RED);
+        barcosDisponibles.forEach((t, c) -> {
+            JLabel l = labelsDisponibilidad.get(t);
+            if (l!=null) { 
+                l.setText("x"+c); 
+                l.setForeground(c>0 ? Color.GREEN : new Color(255, 100, 100)); 
             }
         });
     }
 
-    // Tabla de datos
-   
-    // Guardamos objetos 'PiezaBarco' en cada celda. Si es null, es agua.
+    // --- CLASES INTERNAS ---
     class ModeloTablero extends DefaultTableModel {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private PiezaBarco[][] datos = new PiezaBarco[10][10];
-
-        public ModeloTablero() {
-            super(10, 10);
-        }
-
-        @Override // Siempre devuelve nuestros objetos PiezaBarco
-        public Object getValueAt(int row, int column) {
-            return datos[row][column];
-        }
-
-        @Override // No editable por teclado
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-        
-        public void colocarPieza(int r, int c, PiezaBarco p) {
-            datos[r][c] = p;
-            fireTableCellUpdated(r, c);
-        }
-        
-        public boolean hayBarco(int r, int c) {
-            if (r<0 || r>=10 || c<0 || c>=10) return false;
-            return datos[r][c] != null;
-        }
-        
-        public void limpiar() {
-            datos = new PiezaBarco[10][10];
-            fireTableDataChanged();
-        }
-        
-        public int contarBarcosColocados() {
-            int c = 0;
-            for(int i=0;i<10;i++) for(int j=0;j<10;j++) if(datos[i][j]!=null) c++;
-            return c;
-        }
-
-        public boolean[][] getTableroBooleano() {
-            boolean[][] b = new boolean[10][10];
-            for(int i=0;i<10;i++) for(int j=0;j<10;j++) b[i][j] = (datos[i][j] != null);
-            return b;
-        }
+        private static final long serialVersionUID = 1L;
+        private PiezaBarco[][] datos = new PiezaBarco[10][10];
+        public ModeloTablero() { super(10,10); }
+        public Object getValueAt(int r, int c) { return datos[r][c]; }
+        public boolean isCellEditable(int r, int c) { return false; }
+        public void colocarPieza(int r, int c, PiezaBarco p) { datos[r][c] = p; fireTableCellUpdated(r,c); }
+        public boolean hayBarco(int r, int c) { if(r<0||r>=10||c<0||c>=10)return false; return datos[r][c]!=null; }
+        public void limpiar() { datos = new PiezaBarco[10][10]; fireTableDataChanged(); }
+        public int contarBarcosColocados() { int n=0; for(int i=0;i<10;i++)for(int j=0;j<10;j++)if(datos[i][j]!=null)n++; return n; }
+        public boolean[][] getTableroBooleano() { boolean[][] b=new boolean[10][10]; for(int i=0;i<10;i++)for(int j=0;j<10;j++)b[i][j]=(datos[i][j]!=null); return b; }
     }
-
-    // Clase auxiliar para saber qué pintar en cada celda
+    
     class PiezaBarco {
-        int idBarco;    // Para diferenciar barcos
-        int indiceParte; // 0=inicio, 1=medio, 2=fin, etc.
-        int tamanoTotal;
-        boolean horizontal;
-
-        public PiezaBarco(int id, int idx, int total, boolean horiz) {
-            this.idBarco = id;
-            this.indiceParte = idx;
-            this.tamanoTotal = total;
-            this.horizontal = horiz;
-        }
+        int id, idx, total; boolean horiz;
+        public PiezaBarco(int id, int idx, int total, boolean horiz) { this.id=id; this.idx=idx; this.total=total; this.horiz=horiz; }
     }
-
-
-    // Renderer
-  
+    
     class BarcoRenderer extends JPanel implements TableCellRenderer {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private PiezaBarco piezaActual;
-
-        public BarcoRenderer() {
-            setOpaque(true); // Necesario para pintar el fondo
+        private static final long serialVersionUID = 1L;
+        private PiezaBarco p;
+        public BarcoRenderer() { setOpaque(true); }
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+            this.p = (PiezaBarco)v; setBackground(new Color(0, 105, 148)); return this;
         }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, 
-                                                       int row, int column) {
-            // Guardamos el valor para usarlo en paintComponent
-            this.piezaActual = (PiezaBarco) value;
-            
-            // Fondo base (Agua)
-            setBackground(new Color(0, 150, 200)); 
-            return this;
-        }
-
-        @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g); // Pinta el fondo azul primero
+            super.paintComponent(g);
+            if(p==null) return;
+            Graphics2D g2 = (Graphics2D)g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int w=getWidth(), h=getHeight();
             
-            if (piezaActual == null) return; // Si es agua, terminamos
-
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            int w = getWidth();
-            int h = getHeight();
-
-            if (imagenBarcoOriginal != null) {
-           
-                // Calculamos qué trozo de la imagen original corresponde a ESTA celda.
-                // Si el barco es de tamaño 3, y esta celda es el índice 1 (medio):
-                // Tenemos que pintar el tercio central de la imagen.
-
-                if (piezaActual.horizontal) {
-                    // El ancho total virtual del barco sería: w * tamanoTotal
-                    // Queremos dibujar la imagen estirada a ese ancho virtual,
-                    // pero desplazada para que solo se vea nuestra parte.
-                    
-                    int anchoTotalVirtual = w * piezaActual.tamanoTotal;
-                    int desplazamientoX = -(piezaActual.indiceParte * w);
-                    
-                    // Dibujamos la imagen completa desplazada hacia la izquierda
-                    // El componente (JPanel) actúa como una "máscara" que solo deja ver lo que cae dentro
-                    g2d.drawImage(imagenBarcoOriginal, desplazamientoX, 0, anchoTotalVirtual, h, null);
-                    
+            if(imagenBarcoOriginal!=null) {
+                if(p.horiz) {
+                    g2.drawImage(imagenBarcoOriginal, -(p.idx*w), 0, w*p.total, h, null);
                 } else {
-                    // Guardar estado original
-                    AffineTransform backup = g2d.getTransform();
-                    
-                   
-                    // Para simplificar, rotamos el lienzo:
-                    g2d.rotate(Math.toRadians(90), w/2.0, h/2.0);
-                    
-                    // Restauramos para usar un método manual de dibujo vertical si la rotación falla visualmente
-                    g2d.setTransform(backup);
-                    
-                    // Creamos una transformación que coloque la imagen verticalmente
-                     g2d.translate(w/2.0, h/2.0);
-                     g2d.rotate(Math.toRadians(90));
-                     g2d.translate(-h/2.0, -w/2.0); // Intercambiamos w/h por la rotación
-                     
-                     // Ahora pinto "horizontalmente" en el sistema rotado
-                     // ancho virtual = h * tamano
-                     int anchoVirt = h * piezaActual.tamanoTotal;
-                     int desp = -(piezaActual.indiceParte * h);
-                     
-                     g2d.drawImage(imagenBarcoOriginal, desp, 0, anchoVirt, w, null);
-                     
-                     g2d.setTransform(backup);
+                    AffineTransform at = g2.getTransform();
+                    g2.translate(w/2.0, h/2.0); 
+                    g2.rotate(Math.toRadians(90)); 
+                    g2.translate(-h/2.0, -w/2.0);
+                    g2.drawImage(imagenBarcoOriginal, -(p.idx*h), 0, h*p.total, w, null);
+                    g2.setTransform(at);
                 }
-            }
+            } else { g2.setColor(Color.GRAY); g2.fillRect(2,2,w-4,h-4); }
         }
     }
-
-    // Lógica de soltar
-  
+    
     class TableDropHandler extends TransferHandler {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		
-
-		@Override
-        public boolean canImport(TransferSupport support) {
-            return support.isDataFlavorSupported(DataFlavor.stringFlavor);
-        }
-
-        @Override
-        public boolean importData(TransferSupport support) {
+        private static final long serialVersionUID = 1L;
+        public boolean canImport(TransferSupport s) { return s.isDataFlavorSupported(DataFlavor.stringFlavor); }
+        public boolean importData(TransferSupport s) {
             try {
-                String data = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
-                int tamano = Integer.parseInt(data);
-                
-                // Verificar Stock
-                if (barcosDisponibles.get(tamano) <= 0) {
-                    JOptionPane.showMessageDialog(ColocarBarcos.this, "No quedan barcos de tamaño " + tamano);
-                    return false;
-                }
-
-                JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
-                int row = dl.getRow();
-                int col = dl.getColumn();
-                boolean horiz = orientacionHorizontal.isSelected();
-
-                // Validar si cabe y si no hay colisión
-                if (validarColocacion(row, col, tamano, horiz)) {
-                    // Colocar en el modelo
-                    int idBarco = (int)(Math.random() * 10000); // ID único simple
-                    for (int i = 0; i < tamano; i++) {
-                        int r = row + (horiz ? 0 : i);
-                        int c = col + (horiz ? i : 0);
-                        modeloDatos.colocarPieza(r, c, new PiezaBarco(idBarco, i, tamano, horiz));
-                    }
-                    
-                    // Actualizar stock
-                    int stock = barcosDisponibles.get(tamano) - 1;
-                    barcosDisponibles.put(tamano, stock);
+                int tam = Integer.parseInt((String)s.getTransferable().getTransferData(DataFlavor.stringFlavor));
+                if(barcosDisponibles.get(tam) <= 0) return false;
+                JTable.DropLocation dl = (JTable.DropLocation)s.getDropLocation();
+                int r=dl.getRow(), c=dl.getColumn();
+                boolean h = orientacionHorizontal.isSelected();
+                if(validar(r,c,tam,h)) {
+                    int id = (int)(Math.random()*10000);
+                    for(int i=0; i<tam; i++) modeloDatos.colocarPieza(r+(h?0:i), c+(h?i:0), new PiezaBarco(id,i,tam,h));
+                    barcosDisponibles.put(tam, barcosDisponibles.get(tam)-1);
                     actualizarLabels();
-                    
-                    tabla.repaint(); // Forzar repintado del renderer
+                    tabla.repaint();
                     return true;
                 } else {
-                    JOptionPane.showMessageDialog(ColocarBarcos.this, "Posición inválida o ocupada");
-                    return false;
+                    JOptionPane.showMessageDialog(ColocarBarcos.this, "¡El barco no cabe en esa posición!", "Error", JOptionPane.WARNING_MESSAGE);
                 }
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch(Exception e) {}
             return false;
         }
-
-        private boolean validarColocacion(int r, int c, int tam, boolean horiz) {
-            if (horiz) {
-                if (c + tam > 10) return false;
-                for (int i = 0; i < tam; i++) if (modeloDatos.hayBarco(r, c + i)) return false;
-            } else {
-                if (r + tam > 10) return false;
-                for (int i = 0; i < tam; i++) if (modeloDatos.hayBarco(r + i, c)) return false;
-            }
+        boolean validar(int r, int c, int tam, boolean h) {
+            if(h) { if(c+tam>10)return false; for(int i=0;i<tam;i++)if(modeloDatos.hayBarco(r,c+i))return false; }
+            else { if(r+tam>10)return false; for(int i=0;i<tam;i++)if(modeloDatos.hayBarco(r+i,c))return false; }
             return true;
+        }
+    }
+    
+    class GradientPanel extends JPanel {
+        private static final long serialVersionUID = 1L;
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setPaint(new GradientPaint(0, 0, new Color(10, 40, 70), 0, getHeight(), new Color(5, 20, 30)));
+            g2.fillRect(0, 0, getWidth(), getHeight());
         }
     }
 }

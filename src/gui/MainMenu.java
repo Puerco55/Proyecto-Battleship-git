@@ -1,40 +1,51 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
-import java. awt.GridLayout;
-import java. awt.event.ActionEvent;
-import java.awt.event. ActionListener;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
-import java. awt.event.WindowEvent;
+import java.awt.event.WindowEvent;
 
-import javax.swing. JButton;
-import javax. swing.JFrame;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing. JOptionPane;
-import javax.swing. JPanel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import db.GestorBaseDatos;
-import main.AjustesPartida;
 
 public class MainMenu extends JFrame {
 
     private static final long serialVersionUID = 1L;
     
-    public MainMenu() {
+    // Colores
+    private final Color COLOR_BOTON = new Color(30, 136, 229);
+    private final Color COLOR_TEXTO = Color.WHITE;
 
+    public MainMenu() {
         setTitle("Hundir la Flota 🚢");
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setSize(420, 420); 
+        setSize(450, 550); 
         setLocationRelativeTo(null); 
         setResizable(false);
         
-        // Inicializar base de datos
-        GestorBaseDatos. inicializarTablas();
+        // Inicializar BD
+        GestorBaseDatos.inicializarTablas();
         
-        // Cerrar ventana
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -42,81 +53,97 @@ public class MainMenu extends JFrame {
             }
         });
 
-        // Panel principal
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel. setBorder(new EmptyBorder(20, 20, 20, 20));
+        // Fondo Degradado
+        GradientPanel mainPanel = new GradientPanel();
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
         setContentPane(mainPanel);
 
-        // Título del juego
-        JLabel titleLabel = new JLabel("Hundir la Flota", SwingConstants.CENTER);
-        titleLabel. setFont(new Font("Arial", Font. BOLD, 36));
-        mainPanel.add(titleLabel, BorderLayout. NORTH);
+        // Título
+        JLabel titleLabel = new JLabel("HUNDIR LA FLOTA", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        titleLabel.setForeground(COLOR_TEXTO);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 30, 0));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
         
-        // Panel de botones
-        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15));
-        buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
-        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+        // Botones
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new BoxLayout(buttonContainer, BoxLayout.Y_AXIS));
+        buttonContainer.setOpaque(false);
+        mainPanel.add(buttonContainer, BorderLayout.CENTER);
         
-        // Creación de botones
-        JButton playButton = new JButton("Jugar");
-        JButton optionsButton = new JButton("Opciones");
-        JButton statsButton = new JButton("Estadísticas");
-        JButton exitButton = new JButton("Salir");
+        JButton playButton = crearBotonEstilizado("Jugar");
+        JButton optionsButton = crearBotonEstilizado("Opciones");
+        JButton statsButton = crearBotonEstilizado("Estadísticas");
+        JButton exitButton = crearBotonEstilizado("Salir");
         
-        playButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        optionsButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        statsButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        exitButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        
-        buttonPanel.add(playButton);
-        buttonPanel.add(optionsButton);
-        buttonPanel.add(statsButton);
-        buttonPanel.add(exitButton);
+        buttonContainer.add(Box.createVerticalGlue());
+        agregarBoton(buttonContainer, playButton);
+        agregarBoton(buttonContainer, optionsButton);
+        agregarBoton(buttonContainer, statsButton);
+        agregarBoton(buttonContainer, exitButton);
+        buttonContainer.add(Box.createVerticalGlue());
 
-        // 1. Botón Jugar
-        playButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Iniciar Juego");
-                new SeleccionPerfil(); // abre la ventana de selección
-                dispose(); // cerramos MainMenu
-            }
+        // --- LISTENERS ACTUALIZADOS ---
+        
+        // AHORA ABRE SELECCIÓN DE PERFIL
+        playButton.addActionListener(e -> {
+            new SeleccionPerfil().setVisible(true); // <--- CAMBIO IMPORTANTE
+            dispose(); 
         });
 
-        // 2. Botón Opciones
-        optionsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new MenuOpciones().setVisible(true);
-            }
-        });
+        optionsButton.addActionListener(e -> new MenuOpciones().setVisible(true));
         
-        // 3. Botón Estadísticas
-        statsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                MenuEstadisticas ventanaStats = new MenuEstadisticas();
-                ventanaStats.setVisible(true);
-            }
+        statsButton.addActionListener(e -> {
+            MenuEstadisticas ventanaStats = new MenuEstadisticas();
+            ventanaStats.setVisible(true);
         });
 
-        // 4.  Botón Salir
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                confirmarSalida();
-            }
+        exitButton.addActionListener(e -> confirmarSalida());
+    }
+    
+    private void agregarBoton(JPanel panel, JButton boton) {
+        boton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(boton);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+    }
+
+    private JButton crearBotonEstilizado(String texto) {
+        JButton btn = new JButton(texto);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btn.setForeground(COLOR_TEXTO);
+        btn.setBackground(COLOR_BOTON);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1),
+                new EmptyBorder(10, 40, 10, 40)
+        ));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setMaximumSize(new Dimension(250, 50));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(COLOR_BOTON.brighter()); }
+            public void mouseExited(MouseEvent e) { btn.setBackground(COLOR_BOTON); }
         });
+        return btn;
     }
     
     private void confirmarSalida() {
-        int respuesta = JOptionPane.showConfirmDialog(this,
-            "¿Seguro que quieres salir? ",
-            "Confirmar salida",
-            JOptionPane.YES_NO_OPTION);
-        
-        if (respuesta == JOptionPane.YES_OPTION) {
-            System.exit(0);
+        int respuesta = JOptionPane.showConfirmDialog(this, "¿Seguro que quieres salir?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (respuesta == JOptionPane.YES_OPTION) System.exit(0);
+    }
+    
+    class GradientPanel extends JPanel {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setPaint(new GradientPaint(0, 0, new Color(10, 25, 50), 0, getHeight(), new Color(0, 50, 100)));
+            g2.fillRect(0, 0, getWidth(), getHeight());
         }
     }
 }
