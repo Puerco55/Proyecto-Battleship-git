@@ -28,8 +28,12 @@ public class AjustesPartida extends JFrame {
     private JButton guardarButton;
     private String[] nombresBarcos = { "Barco de 5", "Barco de 4", "Barco de 3", "Barco de 2", "Super Disparo", "Mega Disparo"};
     private int[] tamanosBarcos = { 5, 4, 3, 2 };
-
-    public AjustesPartida() {
+    private String equipoJugador1;
+    private String equipoJugador2;
+    
+    public AjustesPartida(String equipoJugador1, String equipoJugador2) {
+    	this.equipoJugador1 = equipoJugador1;
+    	this.equipoJugador2 = equipoJugador2;
         // Configuracion de la ventana
         setTitle("Ajustes de la Partida");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -147,23 +151,24 @@ public class AjustesPartida extends JFrame {
                     inicioJuego.setVisible(true);
                 };
 
-                // Jugador 2 coloca sus barcos
+             // Jugador 2 coloca sus barcos
                 Consumer<boolean[][]> configurarJugador2 = (tableroJ1) -> {
                     tableros[0] = tableroJ1;
-                    
+
                     // Pantalla de transición
                     JOptionPane.showMessageDialog(null,
                         "Jugador 1 ha terminado.\n\nPasa el dispositivo al Jugador 2.\nPulsa OK cuando esté listo.",
                         "Cambio de Jugador",
                         JOptionPane.INFORMATION_MESSAGE);
-                    	                    new ColocarBarcos(2, configBarcos, (tableroJ2) -> {
+
+                    new ColocarBarcos(2, configBarcos, equipoJugador2, (tableroJ2) -> {
                         tableros[1] = tableroJ2;
                         iniciarPartida.run();
                     });
                 };
 
                 // Jugador 1 coloca sus barcos
-                new ColocarBarcos(1, configBarcos, configurarJugador2);
+                new ColocarBarcos(1, configBarcos, equipoJugador1, configurarJugador2);
             }
         });
     }

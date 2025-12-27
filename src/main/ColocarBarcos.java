@@ -20,6 +20,7 @@ public class ColocarBarcos extends JFrame {
     private static final long serialVersionUID = 1L;
 
     // Componentes
+    private String equipoJugador;
     private JTable tabla;
     private ModeloTablero modeloDatos;
     private JRadioButton orientacionHorizontal;
@@ -32,11 +33,10 @@ public class ColocarBarcos extends JFrame {
     // Imagen
     private BufferedImage imagenBarcoOriginal;
 
-    public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, Consumer<boolean[][]> onGuardar) {
-        
+    public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, String equipoJugador, Consumer<boolean[][]> onGuardar) {
         this.barcosDisponibles = new HashMap<>(configBarcos);
         this.barcosOriginales = new HashMap<>(configBarcos);
-
+        this.equipoJugador = equipoJugador;
         cargarImagenBarco();
 
         setTitle("Colocar Barcos (Modo Tabla) - Jugador " + numeroJugador);
@@ -85,7 +85,10 @@ public class ColocarBarcos extends JFrame {
         }
         
         // Envolver en ScrollPane (sin barras si ajustamos bien el tamaño)
-        JScrollPane scrollPane = new JScrollPane(tabla);
+        JScrollPane scrollPane = new JScrollPane(tabla,
+        		JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+        		JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        
         scrollPane.setPreferredSize(new Dimension(403, 403)); // 10*40 + bordes
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         
@@ -185,7 +188,7 @@ public class ColocarBarcos extends JFrame {
     
     private void cargarImagenBarco() {
         try {
-            File f = new File("resources/images/ShipCruiserHull.png");
+            File f = new File("resources/images/Ship/Ship" + equipoJugador + "Hull.png");
             if (f.exists()) imagenBarcoOriginal = ImageIO.read(f);
             else {
                 // Imagen fallback generada en código
