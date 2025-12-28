@@ -31,8 +31,8 @@ public class VentanaJuego extends JFrame {
     private boolean yaDisparo = false;
     
     // Variables para el tiempo
-    private int segundosTurnoActual = 0;      
-    private int segundosTotalesPartida = 0;   
+    private int tiempoRestanteJ1 = 120; // segundos restantes del jugador 1
+    private int tiempoRestanteJ2 = 120; // segundos restantes de jugador 2
     private volatile boolean cronometroPausado = false; 
     
     private Thread hiloCronometro;
@@ -91,6 +91,12 @@ public class VentanaJuego extends JFrame {
         labelTiempo = new JLabel("00:00");
         labelTiempo.setFont(new Font("Monospaced", Font.BOLD, 20));
         labelTiempo.setForeground(Color.DARK_GRAY);
+        
+        if (jugadorActual == j1) {
+            labelTiempo.setText(formatearTiempo(tiempoRestanteJ1));
+        } else {
+            labelTiempo.setText(formatearTiempo(tiempoRestanteJ2));
+        }
         
         panelInfo.add(statsPanel, BorderLayout.WEST);
         panelInfo.add(labelTiempo, BorderLayout.EAST);
@@ -218,6 +224,7 @@ public class VentanaJuego extends JFrame {
         
         verificarVictoria();
         actualizarInterfaz();
+        
     }
     
     private boolean procesarImpacto(int fila, int col) {
@@ -299,19 +306,20 @@ public class VentanaJuego extends JFrame {
             juegoActivo = false;
             
             // Calculamos el tiempo FINAL total
-            int tiempoFinal = segundosTotalesPartida + segundosTurnoActual;
-            String tiempoFormateado = formatearTiempo(tiempoFinal);
+            String tiempoFormateadoJ1 = formatearTiempo(tiempoRestanteJ1);
+            String tiempoFormateadoJ2 = formatearTiempo(tiempoRestanteJ2);
             
             estadisticasDAO.guardarPartida("Jugador " + jugadorActual.getId(), turnosTotales, 5); 
             
             JOptionPane.showMessageDialog(this, 
-                "¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" +
-                "Turnos totales: " + turnosTotales + "\n" +
-                "Duración de la partida: " + tiempoFormateado,
-                "VICTORIA", JOptionPane.INFORMATION_MESSAGE);
+            	    "¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" +
+            	    "Turnos totales: " + turnosTotales + "\n" +
+            	    "Tiempo restante J1: " + tiempoFormateadoJ1 + "\n" +
+            	    "Tiempo restante J2: " + tiempoFormateadoJ2,
+            	    "VICTORIA", JOptionPane.INFORMATION_MESSAGE);
             
             dispose();
-            new gui.MainMenu().setVisible(true);
+            new MainMenu().setVisible(true);
         }
     }
 
@@ -321,38 +329,49 @@ public class VentanaJuego extends JFrame {
             if (confirm != JOptionPane.YES_OPTION) return;
         }
 
-        // 1. Pausar cronómetro
+        // Pausar cronómetro mientras se muestra el diálogo
         cronometroPausado = true;
-        
-        // 2. Acumular el tiempo del turno al total
-        segundosTotalesPartida += segundosTurnoActual;
+
         turnosTotales++;
-        
-        // 3. Diálogo de espera
+
+        // Sumar 6 s al jugador que termina su turno
+        if (jugadorActual == j1) {
+            tiempoRestanteJ1 += 6;
+        } else {
+            tiempoRestanteJ2 += 6;
+        }
+
+        // Diálogo de espera
+        String tiempoActual = (jugadorActual == j1) ? formatearTiempo(tiempoRestanteJ1)
+                                                    : formatearTiempo(tiempoRestanteJ2);
         JOptionPane.showMessageDialog(this, 
-            "Fin del turno. Tiempo acumulado partida: " + formatearTiempo(segundosTotalesPartida) + "\n\n" +
+            "Fin del turno. Tiempo restante del jugador: " + tiempoActual + "\n\n" +
             "Pasa el dispositivo al OTRO jugador.",
             "Cambio de Jugador", JOptionPane.INFORMATION_MESSAGE);
-        
-        // 4. Intercambio de roles
+
+        // Intercambio de roles
         Jugador temp = jugadorActual;
         jugadorActual = oponente;
         oponente = temp;
-        
-        // 5. Resetear estado
+
+        // Resetear estado del turno
         yaDisparo = false;
         superDisparoActivo = false;
         megaDisparoActivo = false;
-        
-        // 6. Reiniciar contador turno
-        segundosTurnoActual = 0; 
-        labelTiempo.setText("00:00");
-        
-        // 7. Reanudar cronómetro
+
+        // Actualizar label del reloj al jugador que empieza
+        if (jugadorActual == j1) {
+            labelTiempo.setText(formatearTiempo(tiempoRestanteJ1));
+        } else {
+            labelTiempo.setText(formatearTiempo(tiempoRestanteJ2));
+        }
+
+        // Reanudar cronómetro
         cronometroPausado = false;
-        
+
+        // Actualizar interfaz
         actualizarInterfaz();
-    }
+    } 	
 
     private void actualizarInterfaz() {
         labelInfoJugador.setText("Turno del JUGADOR " + jugadorActual.getId());
@@ -405,22 +424,39 @@ public class VentanaJuego extends JFrame {
             while (juegoActivo) {
                 try {
                     Thread.sleep(1000);
-                    
+
                     if (!cronometroPausado) {
-                        segundosTurnoActual++;
-                        String tiempo = formatearTiempo(segundosTurnoActual);
-                        SwingUtilities.invokeLater(() -> labelTiempo.setText(tiempo));
+                        if (jugadorActual == j1) {
+                            tiempoRestanteJ1--;
+                            SwingUtilities.invokeLater(() -> labelTiempo.setText(formatearTiempo(tiempoRestanteJ1)));
+                            if (tiempoRestanteJ1 <= 0) perderPorTiempo(j1);
+                        } else {
+                            tiempoRestanteJ2--;
+                            SwingUtilities.invokeLater(() -> labelTiempo.setText(formatearTiempo(tiempoRestanteJ2)));
+                            if (tiempoRestanteJ2 <= 0) perderPorTiempo(j2);
+                        }
                     }
-                    
+
                 } catch (InterruptedException e) { return; }
             }
         });
         hiloCronometro.start();
     }
-    
+
     private String formatearTiempo(int totalSegundos) {
         int min = totalSegundos / 60;
         int seg = totalSegundos % 60;
         return String.format("%02d:%02d", min, seg);
+    }
+    
+    private void perderPorTiempo(Jugador jugador) {
+        juegoActivo = false;
+        JOptionPane.showMessageDialog(this,
+            "¡EL JUGADOR " + jugador.getId() + " SE QUEDÓ SIN TIEMPO!\n" +
+            "El jugador " + oponente.getId() + " gana la partida.",
+            "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
+
+        dispose();
+        new MainMenu().setVisible(true);
     }
 }
