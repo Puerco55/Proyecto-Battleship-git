@@ -13,11 +13,10 @@ import javax.swing.SwingConstants;
 
 public class PantallaInicioJuego extends JFrame {
     private static final long serialVersionUID = 1L;
-    
     private boolean[][] tableroJugador1;
     private boolean[][] tableroJugador2;
     
-    public PantallaInicioJuego(int superDisparos, int megaDisparos, 
+    public PantallaInicioJuego(int superDisparos, int megaDisparos, int escudos,
                                boolean[][] tableroJ1, boolean[][] tableroJ2) {
         this.tableroJugador1 = tableroJ1;
         this.tableroJugador2 = tableroJ2;
@@ -37,7 +36,7 @@ public class PantallaInicioJuego extends JFrame {
         titulo.setFont(new Font("Arial", Font.BOLD, 28));
         panel.add(titulo, BorderLayout.NORTH);
        
-     // Texto
+        // Texto
         JLabel mensaje = new JLabel("Ambos jugadores han colocado sus barcos");
         mensaje.setFont(new Font("Arial", Font.PLAIN, 16));    
         mensaje.setOpaque(false);       
@@ -64,6 +63,7 @@ public class PantallaInicioJuego extends JFrame {
                     1, 
                     superDisparos, 
                     megaDisparos,
+                    escudos,
                     tableroJugador1,
                     tableroJugador2
                 );

@@ -16,8 +16,8 @@ public class VentanaJuego extends JFrame {
     private JPanel[][] celdasPropias = new JPanel[10][10];
     
     // Estadísticas UI
-    private JLabel labelAciertos, labelFallos, labelBarcosHundidos;
-    private JButton botonSuperDisparo, botonMegaDisparo, botonPasarTurno;
+    private JLabel labelAciertos, labelFallos, labelBarcosHundidos, labelEscudos;
+    private JButton botonSuperDisparo, botonMegaDisparo, botonPasarTurno, botonEscudo;
     
     // Lógica del Juego
     private Jugador j1;
@@ -39,11 +39,11 @@ public class VentanaJuego extends JFrame {
     private volatile boolean juegoActivo = true;
     private EstadisticasDAO estadisticasDAO;
 
-    public VentanaJuego(int numeroJugadorInicial, int superDisparos, int megaDisparos, 
+    public VentanaJuego(int numeroJugadorInicial, int superDisparos, int megaDisparos, int escudos,
                         boolean[][] tableroJ1, boolean[][] tableroJ2) {
         
-        this.j1 = new Jugador(1, tableroJ1, superDisparos, megaDisparos);
-        this.j2 = new Jugador(2, tableroJ2, superDisparos, megaDisparos);
+        this.j1 = new Jugador(1, tableroJ1, superDisparos, megaDisparos, escudos);
+        this.j2 = new Jugador(2, tableroJ2, superDisparos, megaDisparos,escudos);
         this.estadisticasDAO = new EstadisticasDAO();
 
         if (numeroJugadorInicial == 1) {
@@ -162,12 +162,19 @@ public class VentanaJuego extends JFrame {
         
         botonMegaDisparo = new JButton("Mega Disparo");
         botonMegaDisparo.addActionListener(e -> activarHabilidad(false, true));
+        botonEscudo = new JButton("Escudo (" + jugadorActual.getEscudos() + ")");
+        botonEscudo.addActionListener(e -> activarEscudo());
         
         botonPasarTurno = new JButton("TERMINAR TURNO");
         botonPasarTurno.setBackground(new Color(100, 180, 100));
         botonPasarTurno.setFont(new Font("Arial", Font.BOLD, 14));
         botonPasarTurno.addActionListener(e -> cambiarTurno());
         
+        labelEscudos = new JLabel("Escudos 🛡️: " + jugadorActual.getEscudos());	
+        labelEscudos.setFont(new Font("Arial", Font.BOLD, 14));
+        
+        panelDerecho.add(Box.createVerticalStrut(10));
+        panelDerecho.add(alinearBoton(botonEscudo));
         panelDerecho.add(alinearBoton(botonSuperDisparo));
         panelDerecho.add(Box.createVerticalStrut(10));
         panelDerecho.add(alinearBoton(botonMegaDisparo));
@@ -208,51 +215,65 @@ public class VentanaJuego extends JFrame {
     }
 
     private void ejecutarDisparoSimple(int fila, int col) {
-        if (jugadorActual.getTableroDisparos()[fila][col]) {
-            JOptionPane.showMessageDialog(this, "Ya disparaste aquí.");
-            return;
+        if (oponente.tieneEscudoActivo()) {
+            JOptionPane.showMessageDialog(this, 
+                "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" +
+                "Tu disparo ha sido bloqueado.");
+            oponente.resetEscudoTurno();
+            yaDisparo = true;
+            actualizarInterfaz();
+            return; // Salir sin disparar
         }
+        int resultado = procesarImpacto(fila, col);
+        yaDisparo = true;  	
 
-        boolean impacto = procesarImpacto(fila, col);
-        yaDisparo = true;
-        
-        if (impacto) {
+        if (resultado == 1) {
             JOptionPane.showMessageDialog(this, "¡IMPACTO!", "Boom", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Agua...", "Splash", JOptionPane.INFORMATION_MESSAGE);
-        }
+        } 	
         
         verificarVictoria();
         actualizarInterfaz();
         
     }
     
-    private boolean procesarImpacto(int fila, int col) {
-        if (fila < 0 || fila >= 10 || col < 0 || col >= 10) return false;
-        
-        if (jugadorActual.getTableroDisparos()[fila][col]) return false;
-
+    private int procesarImpacto(int fila, int col) {
+        if (fila < 0 || fila >= 10 || col < 0 || col >= 10) return 0;
+        if (jugadorActual.getTableroDisparos()[fila][col]) return 0;
+          
         jugadorActual.getTableroDisparos()[fila][col] = true;
-        oponente.getImpactosRecibidos()[fila][col] = true;
-
+        
         if (oponente.getTableroPropio()[fila][col]) {
+            oponente.getImpactosRecibidos()[fila][col] = true;
             jugadorActual.incrementarAciertos();
             oponente.recibirImpacto();
-            return true;
+            return 1;
         } else {
             jugadorActual.incrementarFallos();
-            return false;
+            return 0;
         }
     }
 
     private void ejecutarSuperDisparo(int r, int c) {
         if (jugadorActual.getSuperDisparos() <= 0) return;
-
+        
+        if (oponente.tieneEscudoActivo()) {
+            JOptionPane.showMessageDialog(this, 
+                "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" +
+                "Tu disparo ha sido bloqueado.");
+            oponente.resetEscudoTurno();
+            yaDisparo = true;
+            actualizarInterfaz();
+            return; // Salir sin disparar
+        }
+        
         int[][] coords = {{r,c}, {r-1,c}, {r+1,c}, {r,c-1}, {r,c+1}};
         int aciertos = 0;
         
         for (int[] par : coords) {
-            if (procesarImpacto(par[0], par[1])) aciertos++;
+            int res = procesarImpacto(par[0], par[1]);
+            if (res == 1) aciertos++; 
         }
         
         jugadorActual.usarSuperDisparo();
@@ -261,11 +282,23 @@ public class VentanaJuego extends JFrame {
 
     private void ejecutarMegaDisparo(int r, int c) {
         if (jugadorActual.getMegaDisparos() <= 0) return;
-
+        
+        if (oponente.tieneEscudoActivo()) {
+            JOptionPane.showMessageDialog(this,
+                "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" +
+                "El MEGA DISPARO ha sido bloqueado.");
+            oponente.resetEscudoTurno();
+            jugadorActual.usarSuperDisparo();
+            yaDisparo = true;
+            actualizarInterfaz();
+            return;
+        }
+        
         int aciertos = 0;
         for (int i = r - 1; i <= r + 1; i++) {
             for (int j = c - 1; j <= c + 1; j++) {
-                if (procesarImpacto(i, j)) aciertos++;
+                int res = procesarImpacto(i, j);
+                if (res == 1) aciertos++; 
             }
         }
         
@@ -296,8 +329,6 @@ public class VentanaJuego extends JFrame {
             megaDisparoActivo = true;
             superDisparoActivo = false;
             JOptionPane.showMessageDialog(this, "Modo MEGA activo (3x3). Elige objetivo.");
-        } else {
-            JOptionPane.showMessageDialog(this, "No te quedan disparos especiales de este tipo.");
         }
     }
 
@@ -371,15 +402,21 @@ public class VentanaJuego extends JFrame {
 
         // Actualizar interfaz
         actualizarInterfaz();
-    } 	
+    }
 
     private void actualizarInterfaz() {
         labelInfoJugador.setText("Turno del JUGADOR " + jugadorActual.getId());
         labelAciertos.setText("Aciertos: " + jugadorActual.getAciertos());
         labelFallos.setText("Fallos: " + jugadorActual.getFallos());
+        labelEscudos.setText("Escudos: " + jugadorActual.getEscudos());
         
         botonSuperDisparo.setText("Super Disparo (" + jugadorActual.getSuperDisparos() + ")");
         botonMegaDisparo.setText("Mega Disparo (" + jugadorActual.getMegaDisparos() + ")");
+        botonEscudo.setText("Escudo (" + jugadorActual.getEscudos() + ")");
+        // Desactivar botoones
+        botonSuperDisparo.setEnabled(jugadorActual.getSuperDisparos() > 0);
+        botonMegaDisparo.setEnabled(jugadorActual.getMegaDisparos() > 0);
+        botonEscudo.setEnabled(jugadorActual.getEscudos() > 0);
         
         // Tablero Ataque
         boolean[][] disparos = jugadorActual.getTableroDisparos();
@@ -458,5 +495,19 @@ public class VentanaJuego extends JFrame {
 
         dispose();
         new MainMenu().setVisible(true);
+    }
+    private void activarEscudo() {
+        if (jugadorActual.tieneEscudoActivo()) {
+            JOptionPane.showMessageDialog(this, "Ya tienes un escudo activo.");
+            return;
+        }
+        if (jugadorActual.getEscudos() <= 0) {
+            JOptionPane.showMessageDialog(this, "No te quedan escudos disponibles.");
+            return;
+        }
+
+        jugadorActual.usarEscudo(); // resta 1 escudo y marca activo
+        JOptionPane.showMessageDialog(this, "¡Escudo activado para este turno!");
+        actualizarInterfaz();
     }
 }

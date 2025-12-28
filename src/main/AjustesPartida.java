@@ -33,7 +33,7 @@ public class AjustesPartida extends JFrame {
     private static final long serialVersionUID = 1L;
     private JSpinner[] spinners;
     
-    private String[] nombresBarcos = { "Barco de 5", "Barco de 4", "Barco de 3", "Barco de 2", "Super Disparo", "Mega Disparo"};
+    private String[] nombresBarcos = { "Barco de 5", "Barco de 4", "Barco de 3", "Barco de 2", "Super Disparo", "Mega Disparo", "Escudos"};
     private int[] tamanosBarcos = { 5, 4, 3, 2 };
     
     private String equipoJugador1;
@@ -90,7 +90,8 @@ public class AjustesPartida extends JFrame {
             else if (i == 3) spinners[i] = new JSpinner(new SpinnerNumberModel(3, 0, 3, 1)); // Barco 2: Max 3 (Inicial 3)
             else if (i == 4) spinners[i] = new JSpinner(new SpinnerNumberModel(2, 0, 2, 1)); // Super: Max 2
             else if (i == 5) spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 1, 1)); // Mega: Max 1
-            
+            else if (i == 6) spinners[i] = new JSpinner(new SpinnerNumberModel(1, 0, 2, 1)); // Escudos: Max 2
+        
             spinners[i].setPreferredSize(new Dimension(80, 30));
             spinners[i].setBorder(BorderFactory.createLineBorder(Color.WHITE));
             formPanel.add(spinners[i], gbc);
@@ -126,22 +127,19 @@ public class AjustesPartida extends JFrame {
             
             final int superD = (int) spinners[4].getValue();
             final int megaD = (int) spinners[5].getValue();
-
+            final int escudos = (int) spinners[6].getValue();
             dispose();
 
             final boolean[][][] tableros = new boolean[2][][];
 
-            Runnable iniciarPartida = () -> {
-                PantallaInicioJuego inicio = new PantallaInicioJuego(superD, megaD, tableros[0], tableros[1]);
-                inicio.setVisible(true);
-            };
 
             Consumer<boolean[][]> configurarJugador2 = (tableroJ1) -> {
                 tableros[0] = tableroJ1;
                 JOptionPane.showMessageDialog(null, "Jugador 1 listo.\nPasar a Jugador 2.", "Cambio", JOptionPane.INFORMATION_MESSAGE);
                 new ColocarBarcos(2, configBarcos, this.equipoJugador2, (tableroJ2) -> {
                     tableros[1] = tableroJ2;
-                    iniciarPartida.run();
+                    PantallaInicioJuego inicio = new PantallaInicioJuego(superD, megaD, escudos, tableros[0], tableros[1]);
+                    inicio.setVisible(true);
                 });
             };
 

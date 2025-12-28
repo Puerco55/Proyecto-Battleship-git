@@ -15,17 +15,22 @@ public class Jugador {
     private int superDisparos;
     private int megaDisparos;
     
+    private int escudos;
+    private boolean escudoActivo = false;  
+    
     // Total casillas de barcos vivos
     private int casillasTotales;
     private int casillasGolpeadasPropias = 0;
 
-    public Jugador(int id, boolean[][] tableroInicial, int superDisparos, int megaDisparos) {
+    public Jugador(int id, boolean[][] tableroInicial, int superDisparos, int megaDisparos, int escudos) {
         this.id = id;
         this.tableroPropio = tableroInicial;
         this.superDisparos = superDisparos;
         this.megaDisparos = megaDisparos;
+        this.escudos = escudos;
         this.tableroDisparos = new boolean[10][10];
         this.impactosRecibidos = new boolean[10][10];
+        this.escudoActivo = false;
         calcularCasillasTotales();
     }
 
@@ -62,6 +67,20 @@ public class Jugador {
     
     public int getMegaDisparos() { return megaDisparos; }
     public void usarMegaDisparo() { this.megaDisparos--; }
+    
+    public int getEscudos() { return escudos; }
+    public boolean tieneEscudoActivo() { return escudoActivo; }
+
+    public void usarEscudo() {
+        if (escudos > 0) {
+            escudos--;
+            escudoActivo = true;
+        }
+    }
+    
+    public void resetEscudoTurno() {
+        escudoActivo = false;
+    }
     
     public void recibirImpacto() { this.casillasGolpeadasPropias++; }
 }
