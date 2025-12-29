@@ -12,6 +12,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -92,6 +93,7 @@ public class SeleccionPerfil extends JFrame {
         });
     }
 
+    // --- CLASE PANEL JUGADOR ---
     class PanelJugador extends JPanel {
         private static final long serialVersionUID = 1L;
         private JLabel labelEquipo;
@@ -119,11 +121,12 @@ public class SeleccionPerfil extends JFrame {
             add(imagenEquipoLabel, BorderLayout.CENTER);
             
             // Panel de Botones (Flechas)
-            JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10)); // Espacio entre flechas
+            JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 10)); // Más espacio entre flechas
             panelBotones.setOpaque(false);
             
-            JButton btnIzq = crearFlecha("◀");
-            JButton btnDer = crearFlecha("▶");
+            // USAMOS LA NUEVA CLASE ArrowButton
+            JButton btnIzq = new ArrowButton(true);  // Izquierda
+            JButton btnDer = new ArrowButton(false); // Derecha
 
             btnIzq.addActionListener(e -> {
                 indiceActual = (indiceActual - 1 + equiposDisponibles.length) % equiposDisponibles.length;
@@ -139,24 +142,6 @@ public class SeleccionPerfil extends JFrame {
             add(panelBotones, BorderLayout.SOUTH);
         }
         
-        // Crea una flecha transparente (solo texto)
-        private JButton crearFlecha(String txt) {
-            JButton b = new JButton(txt);
-            b.setContentAreaFilled(false); // Quita el fondo
-            b.setBorderPainted(false);     // Quita el borde cuadrado
-            b.setFocusPainted(false);      // Quita el foco
-            b.setForeground(Color.WHITE);
-            b.setFont(new Font("Segoe UI", Font.BOLD, 30)); // Flecha grande
-            b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            
-            // Efecto Hover (Brillo)
-            b.addMouseListener(new MouseAdapter() {
-                public void mouseEntered(MouseEvent e) { b.setForeground(Color.CYAN); }
-                public void mouseExited(MouseEvent e) { b.setForeground(Color.WHITE); }
-            });
-            return b;
-        }
-
         public void actualizarImagen() {
             String nombreEquipo = equiposDisponibles[indiceActual];
             labelEquipo.setText(nombreEquipo);
@@ -225,6 +210,72 @@ public class SeleccionPerfil extends JFrame {
         public String getEquipoSeleccionado() { return equiposDisponibles[indiceActual]; }
     }
     
+    // --- NUEVA CLASE: BOTÓN FLECHA ESTILO JUEGO ---
+    class ArrowButton extends JButton {
+        private static final long serialVersionUID = 1L;
+        private boolean isLeft;
+        private boolean isHovered = false;
+        private Color normalColor = Color.WHITE;
+        private Color hoverColor = Color.CYAN;
+
+        public ArrowButton(boolean isLeft) {
+            this.isLeft = isLeft;
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setPreferredSize(new Dimension(50, 80)); // Tamaño de la flecha
+
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    isHovered = true;
+                    repaint();
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    isHovered = false;
+                    repaint();
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int w = getWidth();
+            int h = getHeight();
+            int padX = w / 5;
+            int padY = h / 4;
+
+            Polygon arrowShape = new Polygon();
+
+            if (isLeft) {
+                arrowShape.addPoint(w - padX, padY);       // Arriba derecha
+                arrowShape.addPoint(padX, h / 2);          // Centro
+                arrowShape.addPoint(w - padX, h - padY);   // Abajo derecha
+            } else {
+                arrowShape.addPoint(padX, padY);           // Arriba izquierda
+                arrowShape.addPoint(w - padX, h / 2);      // Centro
+                arrowShape.addPoint(padX, h - padY);       // Abajo izquierda
+            }
+
+            g2.setColor(isHovered ? hoverColor : normalColor);
+            g2.fill(arrowShape);
+            
+            // Borde opcional para dar efecto
+            g2.setColor(new Color(0,0,0,100));
+            g2.setStroke(new java.awt.BasicStroke(1));
+            g2.draw(arrowShape);
+
+            g2.dispose();
+        }
+    }
+    
+    // --- RESTO DE CLASES AUXILIARES ---
     class FadeLabel extends JLabel {
         private static final long serialVersionUID = 1L;
         private float alpha = 1f; 
@@ -239,12 +290,8 @@ public class SeleccionPerfil extends JFrame {
     }
     
     class GradientPanel extends JPanel {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		protected void paintComponent(Graphics g) {
+        private static final long serialVersionUID = 1L;
+        protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
