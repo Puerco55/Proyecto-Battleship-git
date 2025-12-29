@@ -210,7 +210,6 @@ public class SeleccionPerfil extends JFrame {
         public String getEquipoSeleccionado() { return equiposDisponibles[indiceActual]; }
     }
     
-    // --- NUEVA CLASE: BOTÓN FLECHA ESTILO JUEGO ---
     class ArrowButton extends JButton {
         private static final long serialVersionUID = 1L;
         private boolean isLeft;
@@ -274,8 +273,6 @@ public class SeleccionPerfil extends JFrame {
             g2.dispose();
         }
     }
-    
-    // --- RESTO DE CLASES AUXILIARES ---
     class FadeLabel extends JLabel {
         private static final long serialVersionUID = 1L;
         private float alpha = 1f; 
