@@ -37,7 +37,7 @@ public class SeleccionPerfil extends JFrame {
 
     public SeleccionPerfil() {
         setTitle("Selecciona tus equipos");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(900, 550);
         setLocationRelativeTo(null);
         setResizable(false);

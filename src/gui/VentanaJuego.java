@@ -2,6 +2,7 @@
 package gui;
 
 import java.awt.*;
+
 import javax.swing.*;
 import db.EstadisticasDAO;
 import domain.Jugador;
@@ -375,10 +376,16 @@ public class VentanaJuego extends JFrame {
 
         String tiempoActual = (jugadorActual == j1) ? formatearTiempo(tiempoRestanteJ1)
                                                     : formatearTiempo(tiempoRestanteJ2);
+        
+        this.setVisible(false);
+        
         JOptionPane.showMessageDialog(this, 
             "Fin del turno. Tiempo restante del jugador: " + tiempoActual + "\n\n" +
             "Pasa el dispositivo al OTRO jugador.",
             "Cambio de Jugador", JOptionPane.INFORMATION_MESSAGE);
+        
+        this.setVisible(true);
+
 
         Jugador temp = jugadorActual;
         jugadorActual = oponente;
