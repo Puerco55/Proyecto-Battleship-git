@@ -6,6 +6,7 @@ import java.awt.*;
 import javax.swing.*;
 import db.EstadisticasDAO;
 import domain.Jugador;
+import domain. DetectorHundimiento;
 
 public class VentanaJuego extends JFrame {
 
@@ -84,7 +85,7 @@ public class VentanaJuego extends JFrame {
         JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
         labelAciertos = crearLabelEstilo("Aciertos: 0", new Color(0, 128, 0));
         labelFallos = crearLabelEstilo("Fallos: 0", Color.RED);
-        labelBarcosHundidos = crearLabelEstilo("Barcos: 0", Color.BLUE);
+        labelBarcosHundidos = crearLabelEstilo("Hundidos:  0", Color. BLUE);
         
         statsPanel.add(labelAciertos);
         statsPanel.add(labelFallos);
@@ -217,49 +218,93 @@ public class VentanaJuego extends JFrame {
                 "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" +
                 "Tu disparo ha sido bloqueado y tu turno termina.");
             oponente.resetEscudoTurno();
-            yaDisparo = true; // El escudo cuenta como fallo/bloqueo -> Fin de turno
+            yaDisparo = true;
             actualizarInterfaz();
             return; 
         }
 
         int resultado = procesarImpacto(fila, col);
         
-        // 2. Evaluar resultado del disparo
-        if (resultado == 1) {
-            // ACIERTO: No ponemos yaDisparo = true. El jugador sigue jugando.
-            JOptionPane.showMessageDialog(this, "¡TOCADO! \n¡Sigue disparando!", "Impacto", JOptionPane.INFORMATION_MESSAGE);
+        // Evaluar resultado del disparo
+        if (resultado == 2) {
+            // Hundido - detectar tamaño con recursividad
+            DetectorHundimiento detector = new DetectorHundimiento(
+                oponente.getTableroPropio(),
+                oponente.getImpactosRecibidos()
+            );
+            int tamaño = detector. contarTamañoBarco(fila, col);
+            
+            JOptionPane.showMessageDialog(this, 
+                "💥 ¡¡HUNDIDO!!  💥\n\n" +
+                "¡Has hundido un barco de " + tamaño + " casillas!\n" +
+                "Barcos hundidos: " + jugadorActual.getBarcosHundidos() + "\n\n" +
+                "¡Sigue disparando!", 
+                "¡BARCO HUNDIDO!", JOptionPane.WARNING_MESSAGE);
+                
+        } else if (resultado == 1) {
+            // TOCADO
+            JOptionPane.showMessageDialog(this, 
+                "🎯 ¡TOCADO!\n\n¡Sigue disparando!", 
+                "Impacto", JOptionPane. INFORMATION_MESSAGE);
+                
         } else {
-            // AGUA: Se acaba el turno.
+            // AGUA - Se acaba el turno
             yaDisparo = true; 
-            JOptionPane.showMessageDialog(this, "Agua... \nFin de tus disparos.", "Fallo", JOptionPane.INFORMATION_MESSAGE);
-        } 	
+            JOptionPane.showMessageDialog(this, 
+                "🌊 Agua.. .\n\nFin de tus disparos.", 
+                "Fallo", JOptionPane.INFORMATION_MESSAGE);
+        }
         
         verificarVictoria();
         actualizarInterfaz();
     }
     
+    // Procesa un impacto: 0=Agua, 1=Tocado, 2=Hundido
     private int procesarImpacto(int fila, int col) {
-        if (fila < 0 || fila >= 10 || col < 0 || col >= 10) return 0;
-        if (jugadorActual.getTableroDisparos()[fila][col]) return 0; // Ya disparado
-          
+        // Validar límites
+        if (fila < 0 || fila >= 10 || col < 0 || col >= 10) {
+            return 0;
+        }
+        
+        // Verificar si ya se disparó aquí
+        if (jugadorActual.getTableroDisparos()[fila][col]) {
+            return 0; // Ya disparado
+        }
+        
+        // Marcar como disparado
         jugadorActual.getTableroDisparos()[fila][col] = true;
         
+        // Verificar si hay barco en esta posición
         if (oponente.getTableroPropio()[fila][col]) {
+            // ¡IMPACTO! 
             oponente.getImpactosRecibidos()[fila][col] = true;
             jugadorActual.incrementarAciertos();
-            oponente.recibirImpacto();
-            return 1; // Tocado
+            oponente. recibirImpacto();
+            
+            // Detectar si el barco está hundido usando recursividad
+            DetectorHundimiento detector = new DetectorHundimiento(
+                oponente.getTableroPropio(),
+                oponente.getImpactosRecibidos()
+            );
+            
+            if (detector.estaBarcoHundido(fila, col)) {
+                jugadorActual.incrementarBarcosHundidos();
+                return 2; // Hundido
+            }
+            
+            return 1; // Tocado (pero no hundido)
         } else {
+            // AGUA
             jugadorActual.incrementarFallos();
-            return 0; // Agua
+            return 0;
         }
     }
 
     private void ejecutarSuperDisparo(int r, int c) {
         if (jugadorActual.getSuperDisparos() <= 0) return;
         
-        if (oponente.tieneEscudoActivo()) {
-            JOptionPane.showMessageDialog(this, 
+        if (oponente. tieneEscudoActivo()) {
+            JOptionPane. showMessageDialog(this, 
                 "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" +
                 "Tu disparo ha sido bloqueado.");
             oponente.resetEscudoTurno();
@@ -270,18 +315,37 @@ public class VentanaJuego extends JFrame {
         
         int[][] coords = {{r,c}, {r-1,c}, {r+1,c}, {r,c-1}, {r,c+1}};
         int aciertos = 0;
+        int hundidos = 0;
         
         for (int[] par : coords) {
             int res = procesarImpacto(par[0], par[1]);
-            if (res == 1) aciertos++; 
+            if (res == 1) aciertos++;
+            if (res == 2) {
+                aciertos++;
+                hundidos++;
+            }
         }
         
         jugadorActual.usarSuperDisparo();
-        finalizarAtaqueEspecial("Super Disparo", aciertos);
+        
+        // Mensaje mejorado
+        String mensaje = "Super Disparo completado.\n\nImpactos:  " + aciertos;
+        if (hundidos > 0) {
+            mensaje += "\n💥 ¡Barcos hundidos: " + hundidos + "!";
+        }
+        mensaje += "\n\nEl ataque especial finaliza tu turno.";
+        
+        superDisparoActivo = false;
+        megaDisparoActivo = false;
+        yaDisparo = true;
+        
+        verificarVictoria();
+        actualizarInterfaz();
+        JOptionPane.showMessageDialog(this, mensaje, "Super Disparo", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void ejecutarMegaDisparo(int r, int c) {
-        if (jugadorActual.getMegaDisparos() <= 0) return;
+        if (jugadorActual. getMegaDisparos() <= 0) return;
         
         if (oponente.tieneEscudoActivo()) {
             JOptionPane.showMessageDialog(this,
@@ -294,15 +358,35 @@ public class VentanaJuego extends JFrame {
         }
         
         int aciertos = 0;
+        int hundidos = 0;
+        
         for (int i = r - 1; i <= r + 1; i++) {
             for (int j = c - 1; j <= c + 1; j++) {
                 int res = procesarImpacto(i, j);
-                if (res == 1) aciertos++; 
+                if (res == 1) aciertos++;
+                if (res == 2) {
+                    aciertos++;
+                    hundidos++;
+                }
             }
         }
         
         jugadorActual.usarMegaDisparo();
-        finalizarAtaqueEspecial("Mega Disparo", aciertos);
+        
+        // Mensaje mejorado
+        String mensaje = "Mega Disparo completado.\n\nImpactos: " + aciertos;
+        if (hundidos > 0) {
+            mensaje += "\n💥 ¡Barcos hundidos: " + hundidos + "!";
+        }
+        mensaje += "\n\nEl ataque especial finaliza tu turno.";
+        
+        superDisparoActivo = false;
+        megaDisparoActivo = false;
+        yaDisparo = true;
+        
+        verificarVictoria();
+        actualizarInterfaz();
+        JOptionPane.showMessageDialog(this, mensaje, "Mega Disparo", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void finalizarAtaqueEspecial(String nombre, int aciertos) {
@@ -409,16 +493,22 @@ public class VentanaJuego extends JFrame {
     private void actualizarInterfaz() {
         labelInfoJugador.setText("Turno del JUGADOR " + jugadorActual.getId());
         labelAciertos.setText("Aciertos: " + jugadorActual.getAciertos());
-        labelFallos.setText("Fallos: " + jugadorActual.getFallos());
-        labelEscudos.setText("Escudos: " + jugadorActual.getEscudos());
+        labelFallos.setText("Fallos: " + jugadorActual. getFallos());
+        
+        // Actualizar contador de barcos hundidos
+        labelBarcosHundidos.setText("Hundidos: " + jugadorActual.getBarcosHundidos());
+        
+        labelEscudos.setText("Escudos: " + jugadorActual. getEscudos());
         
         botonSuperDisparo.setText("Super Disparo (" + jugadorActual.getSuperDisparos() + ")");
-        botonMegaDisparo.setText("Mega Disparo (" + jugadorActual.getMegaDisparos() + ")");
+        botonMegaDisparo. setText("Mega Disparo (" + jugadorActual. getMegaDisparos() + ")");
         botonEscudo.setText("Escudo (" + jugadorActual.getEscudos() + ")");
         
         botonSuperDisparo.setEnabled(jugadorActual.getSuperDisparos() > 0);
         botonMegaDisparo.setEnabled(jugadorActual.getMegaDisparos() > 0);
         botonEscudo.setEnabled(jugadorActual.getEscudos() > 0);
+        
+        // ...  resto del código existente para actualizar tableros ...
         
         // Tablero Ataque
         boolean[][] disparos = jugadorActual.getTableroDisparos();
@@ -427,12 +517,12 @@ public class VentanaJuego extends JFrame {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (disparos[i][j]) {
-                    celdasAtaque[i][j].setEnabled(false);
+                    celdasAtaque[i][j]. setEnabled(false);
                     if (barcosEnemigos[i][j]) {
-                        celdasAtaque[i][j].setBackground(Color.RED);
+                        celdasAtaque[i][j]. setBackground(Color. RED);
                         celdasAtaque[i][j].setText("X");
                     } else {
-                        celdasAtaque[i][j].setBackground(Color.CYAN); 
+                        celdasAtaque[i][j].setBackground(Color. CYAN); 
                         celdasAtaque[i][j].setText("O");
                     }
                 } else {
@@ -450,7 +540,7 @@ public class VentanaJuego extends JFrame {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (misDaños[i][j]) {
-                    celdasPropias[i][j].setBackground(miTablero[i][j] ? Color.RED : Color.CYAN);
+                    celdasPropias[i][j]. setBackground(miTablero[i][j] ? Color.RED : Color.CYAN);
                 } else {
                     celdasPropias[i][j].setBackground(miTablero[i][j] ? Color.GRAY : new Color(0, 150, 200));
                 }

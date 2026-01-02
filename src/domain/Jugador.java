@@ -60,7 +60,10 @@ public class Jugador {
     public int getFallos() { return fallos; }
     public void incrementarFallos() { this.fallos++; }
     
-    public int getBarcosHundidos() { return barcosHundidos; } // Nota: La lógica real de barcos hundidos requiere objetos Barco, por ahora lo mantenemos simple.
+    public int getBarcosHundidos() { return barcosHundidos; }
+    public void incrementarBarcosHundidos() { 
+        this.barcosHundidos++; 
+    }
     
     public int getSuperDisparos() { return superDisparos; }
     public void usarSuperDisparo() { this.superDisparos--; }
