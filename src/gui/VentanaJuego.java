@@ -43,7 +43,7 @@ public class VentanaJuego extends JFrame {
     private EstadisticasDAO estadisticasDAO;
 
     public VentanaJuego(int numeroJugadorInicial, int superDisparos, int megaDisparos, int escudos,
-                        boolean[][] tableroJ1, boolean[][] tableroJ2) {
+                        int[][] tableroJ1, int[][] tableroJ2) {
         
         this.j1 = new Jugador(1, tableroJ1, superDisparos, megaDisparos, escudos);
         this.j2 = new Jugador(2, tableroJ2, superDisparos, megaDisparos, escudos);
@@ -274,8 +274,8 @@ public class VentanaJuego extends JFrame {
         // Marcar como disparado
         jugadorActual.getTableroDisparos()[fila][col] = true;
         
-        // Verificar si hay barco en esta posición
-        if (oponente.getTableroPropio()[fila][col]) {
+        // Verificar si hay barco en esta posición (ID > 0)
+        if (oponente.getTableroPropio()[fila][col] > 0) {
             // ¡IMPACTO! 
             oponente.getImpactosRecibidos()[fila][col] = true;
             jugadorActual.incrementarAciertos();
@@ -289,6 +289,7 @@ public class VentanaJuego extends JFrame {
             
             if (detector.estaBarcoHundido(fila, col)) {
                 jugadorActual.incrementarBarcosHundidos();
+                oponente.marcarBarcoHundido(fila, col, oponente.getTableroPropio());
                 return 2; // Hundido
             }
             
@@ -512,14 +513,19 @@ public class VentanaJuego extends JFrame {
         
         // Tablero Ataque
         boolean[][] disparos = jugadorActual.getTableroDisparos();
-        boolean[][] barcosEnemigos = oponente.getTableroPropio(); 
+        int[][] barcosEnemigos = oponente.getTableroPropio(); 
         
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (disparos[i][j]) {
                     celdasAtaque[i][j]. setEnabled(false);
-                    if (barcosEnemigos[i][j]) {
-                        celdasAtaque[i][j]. setBackground(Color. RED);
+                    if (barcosEnemigos[i][j] > 0) { // Si hay barco (ID > 0)
+                        // Hundido = ROJO, Tocado = NARANJA
+                        if (oponente.getCasillasHundidas()[i][j]) {
+                            celdasAtaque[i][j].setBackground(Color.RED);
+                        } else {
+                            celdasAtaque[i][j].setBackground(Color.ORANGE);
+                        }
                         celdasAtaque[i][j].setText("X");
                     } else {
                         celdasAtaque[i][j].setBackground(Color. CYAN); 
@@ -534,15 +540,15 @@ public class VentanaJuego extends JFrame {
         }
 
         // Tablero Propio
-        boolean[][] miTablero = jugadorActual.getTableroPropio();
+        int[][] miTablero = jugadorActual.getTableroPropio();
         boolean[][] misDaños = jugadorActual.getImpactosRecibidos();
         
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (misDaños[i][j]) {
-                    celdasPropias[i][j]. setBackground(miTablero[i][j] ? Color.RED : Color.CYAN);
+                    celdasPropias[i][j]. setBackground((miTablero[i][j] > 0) ? Color.RED : Color.CYAN);
                 } else {
-                    celdasPropias[i][j].setBackground(miTablero[i][j] ? Color.GRAY : new Color(0, 150, 200));
+                    celdasPropias[i][j].setBackground((miTablero[i][j] > 0) ? Color.GRAY : new Color(0, 150, 200));
                 }
             }
         }

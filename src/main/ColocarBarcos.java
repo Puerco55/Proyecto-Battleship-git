@@ -60,7 +60,7 @@ public class ColocarBarcos extends JFrame {
     private BufferedImage imagenBarcoOriginal;
     private String nombreEquipo;
 
-    public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, String nombreEquipo, Consumer<boolean[][]> onGuardar) {
+    public ColocarBarcos(int numeroJugador, Map<Integer, Integer> configBarcos, String nombreEquipo, Consumer<int[][]> onGuardar) {
        
         this.nombreEquipo = nombreEquipo;
         this.barcosDisponibles = new HashMap<>(configBarcos);
@@ -207,7 +207,7 @@ public class ColocarBarcos extends JFrame {
                 return;
             }
             dispose();
-            if (onGuardar != null) onGuardar.accept(modeloDatos.getTableroBooleano());
+            if (onGuardar != null) onGuardar.accept(modeloDatos.getTableroIDs());
         });
         panelDer.add(btnG);
 
@@ -340,6 +340,13 @@ public class ColocarBarcos extends JFrame {
         public void limpiar() { datos = new PiezaBarco[10][10]; fireTableDataChanged(); }
         public int contarBarcosColocados() { int n=0; for(int i=0;i<10;i++)for(int j=0;j<10;j++)if(datos[i][j]!=null)n++; return n; }
         public boolean[][] getTableroBooleano() { boolean[][] b=new boolean[10][10]; for(int i=0;i<10;i++)for(int j=0;j<10;j++)b[i][j]=(datos[i][j]!=null); return b; }
+        public int[][] getTableroIDs() {
+            int[][] b = new int[10][10];
+            for(int i=0; i<10; i++)
+                for(int j=0; j<10; j++)
+                    b[i][j] = (datos[i][j] != null) ? datos[i][j].id : 0;
+            return b;
+        }
     }
    
     class PiezaBarco {

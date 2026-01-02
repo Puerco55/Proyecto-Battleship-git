@@ -130,10 +130,10 @@ public class AjustesPartida extends JFrame {
             final int escudos = (int) spinners[6].getValue();
             dispose();
 
-            final boolean[][][] tableros = new boolean[2][][];
+            final int[][][] tableros = new int[2][][];
 
 
-            Consumer<boolean[][]> configurarJugador2 = (tableroJ1) -> {
+            Consumer<int[][]> configurarJugador2 = (tableroJ1) -> {
                 tableros[0] = tableroJ1;
                 JOptionPane.showMessageDialog(null, "Jugador 1 listo.\nPasar a Jugador 2.", "Cambio", JOptionPane.INFORMATION_MESSAGE);
                 new ColocarBarcos(2, configBarcos, this.equipoJugador2, (tableroJ2) -> {

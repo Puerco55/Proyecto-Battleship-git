@@ -1,14 +1,14 @@
 package domain;
 
-// Clase que detecta hundimientos de barcos usando recursividad
+// Clase que detecta hundimientos de barcos usando recursividad con IDs
 public class DetectorHundimiento {
 
-    private boolean[][] tableroBarcos;
+    private int[][] tableroBarcos; // AHORA IDs de barcos
     private boolean[][] tableroDaños;
     private boolean[][] visitados;
 
     // Constructor
-    public DetectorHundimiento(boolean[][] tableroBarcos, boolean[][] tableroDaños) {
+    public DetectorHundimiento(int[][] tableroBarcos, boolean[][] tableroDaños) {
         this.tableroBarcos = tableroBarcos;
         this.tableroDaños = tableroDaños;
         this.visitados = new boolean[10][10];
@@ -16,15 +16,17 @@ public class DetectorHundimiento {
 
     // Verifica si el barco en la posición está hundido
     public boolean estaBarcoHundido(int fila, int col) {
-        // Reiniciar visitados
+        int idBarco = tableroBarcos[fila][col];
+        if (idBarco == 0) return true; // Si es agua, se considera "no vivo" (o true por defecto)
+
         visitados = new boolean[10][10];
         
-        // Llamar al método recursivo
-        return comprobarHundimientoRecursivo(fila, col);
+        // Llamar al método recursivo filtrando por ID
+        return comprobarHundimientoRecursivo(fila, col, idBarco);
     }
 
-    // Método recursivo que explora casillas conectadas del barco
-    private boolean comprobarHundimientoRecursivo(int fila, int col) {
+    // Método recursivo que explora casillas conectadas del MISMO barco
+    private boolean comprobarHundimientoRecursivo(int fila, int col, int idObjetivo) {
         // Caso base: fuera de límites
         if (fila < 0 || fila >= 10 || col < 0 || col >= 10) {
             return true;
@@ -33,39 +35,41 @@ public class DetectorHundimiento {
         // Caso base: ya visitado
         if (visitados[fila][col]) {
             return true;
+        }
+
+        // Caso base: NO es el mismo barco (otro ID o agua)
+        if (tableroBarcos[fila][col] != idObjetivo) {
+            return true; // No afecta al hundimiento del barco objetivo
         }
 
         // Marcar como visitada
         visitados[fila][col] = true;
 
-        // Caso base: no hay barco
-        if (!tableroBarcos[fila][col]) {
-            return true;
-        }
-
-        // Caso base: hay barco pero no golpeado
+        // Caso base: es parte del barco pero NO golpeada
         if (!tableroDaños[fila][col]) {
-            return false;
+            return false; // Parte del barco encontrada e intacta -> NO hundido
         }
 
-        // Caso recursivo: explorar las 4 direcciones
-        boolean arribaHundido = comprobarHundimientoRecursivo(fila - 1, col);     // Arriba
-        boolean abajoHundido = comprobarHundimientoRecursivo(fila + 1, col);      // Abajo
-        boolean izquierdaHundido = comprobarHundimientoRecursivo(fila, col - 1);  // Izquierda
-        boolean derechaHundido = comprobarHundimientoRecursivo(fila, col + 1);    // Derecha
+        // Caso recursivo: es parte del barco y está golpeada -> seguir explorando
+        boolean arribaHundido = comprobarHundimientoRecursivo(fila - 1, col, idObjetivo);
+        boolean abajoHundido = comprobarHundimientoRecursivo(fila + 1, col, idObjetivo);
+        boolean izquierdaHundido = comprobarHundimientoRecursivo(fila, col - 1, idObjetivo);
+        boolean derechaHundido = comprobarHundimientoRecursivo(fila, col + 1, idObjetivo);
 
-        // Solo hundido si todas las direcciones confirman
         return arribaHundido && abajoHundido && izquierdaHundido && derechaHundido;
     }
 
     // Cuenta el tamaño del barco
     public int contarTamañoBarco(int fila, int col) {
+        int idBarco = tableroBarcos[fila][col];
+        if (idBarco == 0) return 0;
+        
         visitados = new boolean[10][10];
-        return contarRecursivo(fila, col);
+        return contarRecursivo(fila, col, idBarco);
     }
 
     // Método recursivo para contar casillas del barco
-    private int contarRecursivo(int fila, int col) {
+    private int contarRecursivo(int fila, int col, int idObjetivo) {
         // Caso base: fuera de límites
         if (fila < 0 || fila >= 10 || col < 0 || col >= 10) {
             return 0;
@@ -76,8 +80,8 @@ public class DetectorHundimiento {
             return 0;
         }
 
-        // Caso base: no hay barco
-        if (!tableroBarcos[fila][col]) {
+        // Caso base: no es el mismo barco
+        if (tableroBarcos[fila][col] != idObjetivo) {
             return 0;
         }
 
@@ -86,9 +90,9 @@ public class DetectorHundimiento {
 
         // Caso recursivo: contar esta casilla + adyacentes
         return 1 
-            + contarRecursivo(fila - 1, col)   // Arriba
-            + contarRecursivo(fila + 1, col)   // Abajo
-            + contarRecursivo(fila, col - 1)   // Izquierda
-            + contarRecursivo(fila, col + 1);  // Derecha
+            + contarRecursivo(fila - 1, col, idObjetivo)
+            + contarRecursivo(fila + 1, col, idObjetivo)
+            + contarRecursivo(fila, col - 1, idObjetivo)
+            + contarRecursivo(fila, col + 1, idObjetivo);
     }
 }

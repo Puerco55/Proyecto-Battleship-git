@@ -2,7 +2,7 @@ package domain;
 
 public class Jugador {
     private int id; // 1 o 2
-    private boolean[][] tableroPropio;
+    private int[][] tableroPropio; // AHORA ES INT[][] PARA IDs
     private boolean[][] tableroDisparos; // Registro de dónde ha disparado
     private boolean[][] impactosRecibidos; // Dónde le han dado
     
@@ -15,6 +15,9 @@ public class Jugador {
     private int superDisparos;
     private int megaDisparos;
     
+    // Matriz para rastrear casillas de barcos hundidos
+    private boolean[][] casillasHundidas = new boolean[10][10];
+    
     private int escudos;
     private boolean escudoActivo = false;  
     
@@ -22,7 +25,7 @@ public class Jugador {
     private int casillasTotales;
     private int casillasGolpeadasPropias = 0;
 
-    public Jugador(int id, boolean[][] tableroInicial, int superDisparos, int megaDisparos, int escudos) {
+    public Jugador(int id, int[][] tableroInicial, int superDisparos, int megaDisparos, int escudos) {
         this.id = id;
         this.tableroPropio = tableroInicial;
         this.superDisparos = superDisparos;
@@ -38,7 +41,7 @@ public class Jugador {
         casillasTotales = 0;
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                if (tableroPropio[i][j]) casillasTotales++;
+                if (tableroPropio[i][j] > 0) casillasTotales++; // > 0 significa que hay barco
             }
         }
     }
@@ -50,7 +53,7 @@ public class Jugador {
 
     // Getters y Setters necesarios
     public int getId() { return id; }
-    public boolean[][] getTableroPropio() { return tableroPropio; }
+    public int[][] getTableroPropio() { return tableroPropio; }
     public boolean[][] getTableroDisparos() { return tableroDisparos; }
     public boolean[][] getImpactosRecibidos() { return impactosRecibidos; }
     
@@ -86,4 +89,31 @@ public class Jugador {
     }
     
     public void recibirImpacto() { this.casillasGolpeadasPropias++; }
+    
+    // Getter para casillas hundidas
+    public boolean[][] getCasillasHundidas() { return casillasHundidas; }
+    
+    // Marcar todas las casillas de un barco como hundidas usando recursividad e ID
+    public void marcarBarcoHundido(int fila, int col, int[][] tableroBarcos) {
+        int idBarco = tableroBarcos[fila][col];
+        if (idBarco == 0) return; // No es barco
+        marcarRecursivo(fila, col, idBarco, tableroBarcos, new boolean[10][10]);
+    }
+    
+    // Método recursivo auxiliar que SOLO propaga si el ID coincide
+    private void marcarRecursivo(int f, int c, int idObjetivo, int[][] barcos, boolean[][] visitado) {
+        if (f < 0 || f >= 10 || c < 0 || c >= 10) return;
+        if (visitado[f][c]) return;
+        
+        // Si no es el mismo barco (diferente ID), paramos
+        if (barcos[f][c] != idObjetivo) return;
+
+        visitado[f][c] = true;
+        casillasHundidas[f][c] = true;
+        
+        marcarRecursivo(f-1, c, idObjetivo, barcos, visitado);
+        marcarRecursivo(f+1, c, idObjetivo, barcos, visitado);
+        marcarRecursivo(f, c-1, idObjetivo, barcos, visitado);
+        marcarRecursivo(f, c+1, idObjetivo, barcos, visitado);
+    }
 }
