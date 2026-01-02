@@ -225,7 +225,7 @@ public class VentanaJuego extends JFrame {
 
         int resultado = procesarImpacto(fila, col);
         
-        // Evaluar resultado del disparo
+        // Evaluar resultado del disparo y mostrar mensajes
         if (resultado == 2) {
             // Hundido - detectar tamaño con recursividad
             DetectorHundimiento detector = new DetectorHundimiento(
