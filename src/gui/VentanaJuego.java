@@ -390,7 +390,8 @@ public class VentanaJuego extends JFrame {
         JOptionPane.showMessageDialog(this, mensaje, "Mega Disparo", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    private void finalizarAtaqueEspecial(String nombre, int aciertos) {
+    @SuppressWarnings("unused")
+	private void finalizarAtaqueEspecial(String nombre, int aciertos) {
         superDisparoActivo = false;
         megaDisparoActivo = false;
         

@@ -7,16 +7,13 @@ import java.sql.Statement;
 
 public class GestorBaseDatos {
 
-    // Nombre del archivo de la base de datos
     private static final String URL = "jdbc:sqlite:battleship_db.sqlite";
 
-    // Bloque estático para asegurar la carga del driver
     static {
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             System.err.println("Error crítico: No se encontró el driver de SQLite.");
-            System.err.println("Asegúrate de incluir la librería sqlite-jdbc en tu proyecto.");
             e.printStackTrace();
         }
     }
@@ -25,15 +22,19 @@ public class GestorBaseDatos {
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(URL);
+            // IMPORTANTE: En SQLite hay que activar las Foreign Keys explícitamente
+            Statement stmt = connection.createStatement();
+            stmt.execute("PRAGMA foreign_keys = ON;"); 
+            stmt.close();
         } catch (SQLException e) {
             System.out.println("Error al conectar con la BD: " + e.getMessage());
         }
         return connection;
     }
 
-    // Crea la tabla de estadísticas si no existe.
     public static void inicializarTablas() {
-        String sql = "CREATE TABLE IF NOT EXISTS partidas ("
+        // Tabla 1: Partidas (La principal)
+        String sqlPartidas = "CREATE TABLE IF NOT EXISTS partidas ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " fecha TEXT NOT NULL,"
                 + " ganador TEXT NOT NULL," 
@@ -41,11 +42,22 @@ public class GestorBaseDatos {
                 + " barcos_hundidos INTEGER NOT NULL"
                 + ");";
 
+        // Tabla 2: Detalles (Relacionada con partidas por id_partida)
+        // [CUMPLE REQUISITO: Diseño de dos tablas relacionadas]
+        String sqlDetalles = "CREATE TABLE IF NOT EXISTS detalles_partida ("
+                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + " id_partida INTEGER NOT NULL,"
+                + " clave TEXT NOT NULL,"   // Ej: "Dificultad", "Precision_J1"
+                + " valor TEXT NOT NULL,"
+                + " FOREIGN KEY(id_partida) REFERENCES partidas(id) ON DELETE CASCADE"
+                + ");";
+
         try (Connection conn = conectar();
              Statement stmt = conn.createStatement()) {
             if (conn != null) {
-                stmt.execute(sql);
-                System.out.println("Base de datos inicializada correctamente.");
+                stmt.execute(sqlPartidas);
+                stmt.execute(sqlDetalles);
+                System.out.println("Base de datos y tablas relacionadas inicializadas correctamente.");
             }
         } catch (SQLException e) {
             System.out.println("Error al crear tablas: " + e.getMessage());
