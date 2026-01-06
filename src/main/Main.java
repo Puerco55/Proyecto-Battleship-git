@@ -31,7 +31,7 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Error insertando datos de prueba: " + e.getMessage());
             e.printStackTrace();
-        }
+        } 
         // Fin de prueba
        
 
