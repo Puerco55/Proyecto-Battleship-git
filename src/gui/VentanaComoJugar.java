@@ -149,7 +149,12 @@ public class VentanaComoJugar extends JFrame{
 
 	 // Panel degraadado
 	 class GradientPanel extends JPanel {
-	     protected void paintComponent(Graphics g) {
+	     /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		 protected void paintComponent(Graphics g) {
 	         super.paintComponent(g);
 	         Graphics2D g2 = (Graphics2D) g;
 	         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
