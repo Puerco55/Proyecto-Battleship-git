@@ -16,6 +16,7 @@ public class VentanaJuego extends JFrame {
     private final Color COLOR_BOTON = new Color(30, 136, 229);
     private final Color COLOR_BOTON_ESPECIAL = new Color(255, 152, 0);
     private final Color COLOR_BOTON_ESCUDO = new Color(76, 175, 80);
+    private final Color COLOR_BOTON_RENDIRSE = new Color(211, 47, 47);
     private final Color COLOR_TEXTO = Color.WHITE;
     private final Color COLOR_AGUA = new Color(0, 150, 200);
     private final Color COLOR_BARCO = new Color(96, 125, 139);
@@ -24,6 +25,7 @@ public class VentanaJuego extends JFrame {
     private JLabel labelTiempo;
     private JLabel labelInfoJugador;
     private JButton[][] celdasAtaque = new JButton[10][10];
+    private JButton botonRendirse;
     private JPanel[][] celdasPropias = new JPanel[10][10];
     
     // Musica de fondo
@@ -32,6 +34,7 @@ public class VentanaJuego extends JFrame {
     // Estadísticas UI
     private JLabel labelAciertos, labelFallos, labelBarcosHundidos;
     private JButton botonSuperDisparo, botonMegaDisparo, botonPasarTurno, botonEscudo;
+
 
     // Lógica del Juego
     private Jugador j1;
@@ -202,6 +205,9 @@ public class VentanaJuego extends JFrame {
 
         botonPasarTurno = crearBotonEstilizado("TERMINAR TURNO", COLOR_BOTON);
         botonPasarTurno.addActionListener(e -> cambiarTurno());
+        
+        botonRendirse = crearBotonEstilizado("RENDIRSE", COLOR_BOTON_RENDIRSE);
+        botonRendirse.addActionListener(e -> rendirse());
 
         panelDerecho.add(alinearBoton(botonEscudo));
         panelDerecho.add(Box.createVerticalStrut(10)); // Pequeña separación
@@ -211,6 +217,10 @@ public class VentanaJuego extends JFrame {
 
         panelDerecho.add(Box.createVerticalStrut(30)); // Separación mayor
         panelDerecho.add(alinearBoton(botonPasarTurno));
+        
+        panelDerecho.add(Box.createVerticalStrut(30)); // Separación mayor
+        panelDerecho.add(alinearBoton(botonRendirse));
+
 
         panelPrincipal.add(panelDerecho, BorderLayout.EAST);
     }
@@ -532,6 +542,35 @@ public class VentanaJuego extends JFrame {
 
         cronometroPausado = false;
         actualizarInterfaz();
+    }
+    
+    private void rendirse() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Seguro que deseas rendirte?\n\nEl jugador " + oponente.getId() + " ganará la partida.",
+                "Confirmar Rendición",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        juegoActivo = false;
+
+        JOptionPane.showMessageDialog(
+                this,
+                "El JUGADOR " + jugadorActual.getId() + " se ha rendido.\n\n" +
+                "🏆 GANA EL JUGADOR " + oponente.getId(),
+                "Fin de la partida",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        if (musicaFondo != null) {
+            musicaFondo.detener();
+        }
+
+        dispose();
+        new MainMenu().setVisible(true);
     }
 
     private void actualizarInterfaz() {
