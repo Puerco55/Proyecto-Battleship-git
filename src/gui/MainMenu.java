@@ -37,7 +37,7 @@ public class MainMenu extends JFrame {
     private final Color COLOR_TEXTO = Color.WHITE;
 
     public MainMenu() {
-        setTitle("Hundir la Flota 🚢");
+    	setTitle("Hundir la Flota 🚢");
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setSize(450, 550); 
         setLocationRelativeTo(null); 
@@ -88,7 +88,7 @@ public class MainMenu extends JFrame {
         
         // AHORA ABRE SELECCIÓN DE PERFIL
         playButton.addActionListener(e -> {
-            new SeleccionPerfil().setVisible(true); // <--- CAMBIO IMPORTANTE
+            new VentanaComoJugar().setVisible(true); // <--- CAMBIO IMPORTANTE
             dispose(); 
         });
 
