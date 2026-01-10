@@ -25,6 +25,9 @@ public class VentanaJuego extends JFrame {
     private JLabel labelInfoJugador;
     private JButton[][] celdasAtaque = new JButton[10][10];
     private JPanel[][] celdasPropias = new JPanel[10][10];
+    
+    // Musica de fondo
+    private ReproductorAudio musicaFondo;
 
     // Estadísticas UI
     private JLabel labelAciertos, labelFallos, labelBarcosHundidos;
@@ -67,6 +70,11 @@ public class VentanaJuego extends JFrame {
         inicializarComponentes();
         actualizarInterfaz();
         iniciarCronometro();
+        
+        
+        musicaFondo = new ReproductorAudio();
+        // 0.0f es el volumen máximo natural del archivo. 
+        musicaFondo.reproducir("musica_batalla.wav", 0.0f);
     }
 
     private void configurarTurno(Jugador actual, Jugador enemigo) {
@@ -81,6 +89,7 @@ public class VentanaJuego extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
     }
+    
 
     private void inicializarComponentes() {
         // Panel principal con gradiente
@@ -464,7 +473,10 @@ public class VentanaJuego extends JFrame {
                             "Tiempo restante J1: " + tiempoFormateadoJ1 + "\n" +
                             "Tiempo restante J2: " + tiempoFormateadoJ2,
                     "VICTORIA", JOptionPane.INFORMATION_MESSAGE);
-
+            
+            if (musicaFondo != null) {
+                musicaFondo.detener();
+            }
             dispose();
             new MainMenu().setVisible(true);
         }
@@ -626,6 +638,8 @@ public class VentanaJuego extends JFrame {
                 "¡EL JUGADOR " + jugador.getId() + " SE QUEDÓ SIN TIEMPO!\n" +
                         "El jugador " + oponente.getId() + " gana la partida.",
                 "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
+        
+        if (musicaFondo != null) musicaFondo.detener();
 
         dispose();
         new MainMenu().setVisible(true);
