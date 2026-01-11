@@ -515,6 +515,7 @@ public class VentanaJuego extends JFrame {
 			String tiempoFormateadoJ2 = formatearTiempo(tiempoRestanteJ2);
 
 			estadisticasDAO.guardarPartida("Jugador " + jugadorActual.getId(), turnosTotales, 5);
+			EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
 
 			JOptionPane.showMessageDialog(this,
 					"¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" + "Turnos totales: " + turnosTotales
@@ -593,7 +594,7 @@ public class VentanaJuego extends JFrame {
 			return;
 
 		juegoActivo = false;
-
+		EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
 		JOptionPane.showMessageDialog(this, "El JUGADOR " + jugadorActual.getId() + " se ha rendido.\n\n"
 				+ "🏆 GANA EL JUGADOR " + oponente.getId(), "Fin de la partida", JOptionPane.INFORMATION_MESSAGE);
 
@@ -691,6 +692,7 @@ public class VentanaJuego extends JFrame {
 
 	private void perderPorTiempo(Jugador jugador) {
 		juegoActivo = false;
+		EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
 		JOptionPane.showMessageDialog(this, "¡EL JUGADOR " + jugador.getId() + " SE QUEDÓ SIN TIEMPO!\n" + "El jugador "
 				+ oponente.getId() + " gana la partida.", "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
 		
