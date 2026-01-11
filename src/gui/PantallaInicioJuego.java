@@ -23,102 +23,94 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 public class PantallaInicioJuego extends JFrame {
-    private static final long serialVersionUID = 1L;
-    private int[][] tableroJugador1;
-    private int[][] tableroJugador2;
+	private static final long serialVersionUID = 1L;
+	private int[][] tableroJugador1;
+	private int[][] tableroJugador2;
+	private final Color COLOR_BOTON = new Color(30, 136, 229);
+	private final Color COLOR_TEXTO = Color.WHITE;
 
-    private final Color COLOR_BOTON = new Color(30, 136, 229);
-    private final Color COLOR_TEXTO = Color.WHITE;
+	public PantallaInicioJuego(int superDisparos, int megaDisparos, int escudos, int[][] tableroJ1, int[][] tableroJ2,
+			String equipoJ1, String equipoJ2) {
+		this.tableroJugador1 = tableroJ1;
+		this.tableroJugador2 = tableroJ2;
+		setTitle("Hundir la Flota 🚢");
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setSize(450, 300);
+		setLocationRelativeTo(null);
+		setResizable(false);
 
-    public PantallaInicioJuego(int superDisparos, int megaDisparos, int escudos,
-            int[][] tableroJ1, int[][] tableroJ2) {
-        this.tableroJugador1 = tableroJ1;
-        this.tableroJugador2 = tableroJ2;
+		// Panel principal con gradiente
+		GradientPanel panel = new GradientPanel();
+		panel.setLayout(new BorderLayout(20, 20));
+		panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+		setContentPane(panel);
 
-        setTitle("Hundir la Flota 🚢");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(450, 300);
-        setLocationRelativeTo(null);
-        setResizable(false);
+		// Título
+		JLabel titulo = new JLabel("¡TODO LISTO!", SwingConstants.CENTER);
+		titulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
+		titulo.setForeground(COLOR_TEXTO);
+		panel.add(titulo, BorderLayout.NORTH);
 
-        // Panel principal con gradiente
-        GradientPanel panel = new GradientPanel();
-        panel.setLayout(new BorderLayout(20, 20));
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        setContentPane(panel);
+		// Texto
+		JLabel mensaje = new JLabel("Ambos jugadores han colocado sus barcos");
+		mensaje.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+		mensaje.setForeground(COLOR_TEXTO);
+		mensaje.setHorizontalAlignment(SwingConstants.CENTER);
 
-        // Título
-        JLabel titulo = new JLabel("¡TODO LISTO!", SwingConstants.CENTER);
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titulo.setForeground(COLOR_TEXTO);
-        panel.add(titulo, BorderLayout.NORTH);
+		panel.add(mensaje, BorderLayout.CENTER);
 
-        // Texto
-        JLabel mensaje = new JLabel("Ambos jugadores han colocado sus barcos");
-        mensaje.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        mensaje.setForeground(COLOR_TEXTO);
-        mensaje.setHorizontalAlignment(SwingConstants.CENTER);
+		// Boton para empezar el juego
+		JButton empezarButton = crearBotonEstilizado("¡EMPEZAR BATALLA!");
+		empezarButton.setPreferredSize(new Dimension(250, 50));
 
-        panel.add(mensaje, BorderLayout.CENTER);
+		JPanel panelBoton = new JPanel();
+		panelBoton.setOpaque(false);
+		panelBoton.add(empezarButton);
+		panel.add(panelBoton, BorderLayout.SOUTH);
 
-        // Boton para empezar el juego
-        JButton empezarButton = crearBotonEstilizado("¡EMPEZAR BATALLA!");
-        empezarButton.setPreferredSize(new Dimension(250, 50));
+		// Accion del boton
+		empezarButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				VentanaJuego ventanaJuego = new VentanaJuego(1, superDisparos, megaDisparos, escudos, tableroJugador1,
+						tableroJugador2, equipoJ1, equipoJ2);
+				ventanaJuego.setVisible(true);
+				dispose();
+			}
+		});
+	}
 
-        JPanel panelBoton = new JPanel();
-        panelBoton.setOpaque(false);
-        panelBoton.add(empezarButton);
-        panel.add(panelBoton, BorderLayout.SOUTH);
+	private JButton crearBotonEstilizado(String texto) {
+		JButton btn = new JButton(texto);
+		btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		btn.setForeground(COLOR_TEXTO);
+		btn.setBackground(COLOR_BOTON);
+		btn.setFocusPainted(false);
+		btn.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1), new EmptyBorder(10, 40, 10, 40)));
+		btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		btn.setPreferredSize(new Dimension(300, 60));
+		btn.addMouseListener(new MouseAdapter() {
+			public void mouseEntered(MouseEvent e) {
+				btn.setBackground(COLOR_BOTON.brighter());
+			}
 
-        // Accion del boton
-        empezarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                VentanaJuego ventanaJuego = new VentanaJuego(
-                        1,
-                        superDisparos,
-                        megaDisparos,
-                        escudos,
-                        tableroJugador1,
-                        tableroJugador2);
-                ventanaJuego.setVisible(true);
-                dispose();
-            }
-        });
-    }
+			public void mouseExited(MouseEvent e) {
+				btn.setBackground(COLOR_BOTON);
+			}
+		});
+		return btn;
+	}
 
-    private JButton crearBotonEstilizado(String texto) {
-        JButton btn = new JButton(texto);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btn.setForeground(COLOR_TEXTO);
-        btn.setBackground(COLOR_BOTON);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1),
-                new EmptyBorder(10, 40, 10, 40)));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(300, 60));
-        btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(COLOR_BOTON.brighter());
-            }
+	class GradientPanel extends JPanel {
+		private static final long serialVersionUID = 1L;
 
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(COLOR_BOTON);
-            }
-        });
-        return btn;
-    }
-
-    class GradientPanel extends JPanel {
-        private static final long serialVersionUID = 1L;
-
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2.setPaint(new GradientPaint(0, 0, new Color(10, 25, 50), 0, getHeight(), new Color(0, 50, 100)));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-        }
-    }
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g2.setPaint(new GradientPaint(0, 0, new Color(10, 25, 50), 0, getHeight(), new Color(0, 50, 100)));
+			g2.fillRect(0, 0, getWidth(), getHeight());
+		}
+	}
 }
