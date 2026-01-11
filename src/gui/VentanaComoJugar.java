@@ -91,8 +91,15 @@ public class VentanaComoJugar extends JFrame {
 		contenido.add(pEquipos);
 
 		String[] equipos = { "Cruiser", "Dreadnought", "Destroyer", "Submarino" };
-		for (String equipo : equipos) {
-			contenido.add(crearFilaConIcono(equipo, "Este es el equipo " + equipo));
+		String[] rutasImagenes = {
+			    "resources/images/ship/imagen_barcos_cruiser_info.png",
+			    "resources/images/ship/imagen_barcos_dreadnought_info.png",
+			    "resources/images/ship/imagen_barcos_destroyer_info.png",
+			    "resources/images/ship/imagen_barcos_submarino_info.png"
+			};
+
+		for (int i = 0; i < equipos.length; i++) {
+		    contenido.add(crearFilaConIcono(equipos[i], rutasImagenes[i]));
 		}
 
 		contenido.add(Box.createVerticalStrut(15));
@@ -158,12 +165,17 @@ public class VentanaComoJugar extends JFrame {
 
 		JLabel icono = new JLabel(ICONO_INFO);
 
-		// Aqui miramos si acaba en .gif o no, para poner GIF o texto
-		if (recurso != null && recurso.toLowerCase().endsWith(".gif")) {
-			instalarTooltipGif(icono, recurso); // GIF animado
-		} else {
-			icono.setToolTipText(recurso); // solo texto
-		}
+		// Aqui miramos si poner gif, imagenn o texto
+		if (recurso != null) {
+	        recurso = recurso.toLowerCase();
+	        if (recurso.endsWith(".gif")) {
+	            instalarTooltipGif(icono, recurso); // GIF animado
+	        } else if (recurso.endsWith(".png")) {
+	            instalarTooltipImagen(icono, recurso); // Imagen 
+	        } else {
+	        	 icono.setToolTipText(recurso); // solo texto
+	        }
+	    }
 
 		panel.add(lbl);
 		panel.add(Box.createHorizontalStrut(5));
@@ -220,6 +232,38 @@ public class VentanaComoJugar extends JFrame {
 				tooltip.setVisible(false);
 			}
 		});
+	}
+	private void instalarTooltipImagen(JLabel icono, String rutaImagen) {
+	    JWindow tooltip = new JWindow();
+	    JLabel imagenLabel = new JLabel(new ImageIcon(rutaImagen));
+
+	    // Borde blanco
+	    imagenLabel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+	    tooltip.add(imagenLabel);
+	    tooltip.pack();
+
+	    icono.addMouseListener(new MouseAdapter() {
+	        @Override
+	        public void mouseEntered(MouseEvent e) {
+	            Point p = e.getLocationOnScreen();
+
+	            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	            int x = p.x + 15;
+	            int y = p.y + 15;
+	            if (x + tooltip.getWidth() > screenSize.width)
+	                x = p.x - tooltip.getWidth() - 15;
+	            if (y + tooltip.getHeight() > screenSize.height)
+	                y = p.y - tooltip.getHeight() - 15;
+
+	            tooltip.setLocation(x, y);
+	            tooltip.setVisible(true);
+	        }
+
+	        @Override
+	        public void mouseExited(MouseEvent e) {
+	            tooltip.setVisible(false);
+	        }
+	    });
 	}
 
 }
