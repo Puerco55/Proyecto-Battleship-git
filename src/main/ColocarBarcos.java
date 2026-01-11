@@ -89,42 +89,73 @@ public class ColocarBarcos extends JFrame {
 		panelSuperior.add(titulo);
 		mainPanel.add(panelSuperior, BorderLayout.NORTH);
 
-		// Tabla
+		// --- 1. CONFIGURACIÓN DE LA TABLA ---
 		modeloDatos = new ModeloTablero();
 		tabla = new JTable(modeloDatos);
-		tabla.setRowHeight(45); // Altura de celda
+		tabla.setRowHeight(45); // 10 filas * 45px = 450px altura cuerpo
+		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // CRÍTICO para control total
 		tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tabla.setCellSelectionEnabled(true);
 		tabla.setShowGrid(true);
 		tabla.setGridColor(new Color(255, 255, 255, 50));
+		// Truco visual: Pinta el fondo sobrante (si lo hubiera por error de pantalla) del color del agua
+		tabla.setFillsViewportHeight(true); 
+		tabla.setBackground(new Color(0, 105, 148)); 
 		tabla.setDefaultRenderer(Object.class, new BarcoRenderer());
 		tabla.setTransferHandler(new TableDropHandler());
 
-		// Panel contenedor de la tabla
-		JPanel panelTabla = new JPanel(new GridBagLayout());
-		panelTabla.setOpaque(false);
+		// --- 2. BLOQUEO TOTAL DEL HEADER ---
+		javax.swing.table.JTableHeader header = tabla.getTableHeader();
+		header.setResizingAllowed(false);   // Bloqueo general
+		header.setReorderingAllowed(false); // Bloqueo de arrastrar columnas
+		header.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-		// Ancho de columnas
-		for (int i = 0; i < 10; i++)
-			tabla.getColumnModel().getColumn(i).setPreferredWidth(45);
+		// Bloqueo individual POR COLUMNA (Impide que salga el cursor de redimensionar)
+		for (int i = 0; i < 10; i++) {
+		    javax.swing.table.TableColumn col = tabla.getColumnModel().getColumn(i);
+		    col.setPreferredWidth(45);
+		    col.setMinWidth(45);
+		    col.setMaxWidth(45);
+		    col.setResizable(false); // <--- ESTO congela el ancho
+		}
 
+		// --- 3. JSCROLLPANE "INVISIBLE" ---
+		// Usamos JScrollPane para unir Header y Tabla perfectamente
 		JScrollPane scroll = new JScrollPane(tabla);
-		// Calculamos tamaño exacto: 10 celdas * 45px = 450px.
-		// Sumamos la cabecera del JTable que suele ser de ~25px-30px.
-		// Dimension(453, 478) ajustado a prueba y error para bordes.
-		// Si la tabla es 450px alto, + header (~25) + borders (~4) = ~480.
-		// Ajustamos para que no salga fila blanca extra abajo.
-		scroll.setPreferredSize(new Dimension(455, 478));
-		scroll.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 2));
-		scroll.getViewport().setBackground(new Color(0, 105, 148));
-
-		tabla.getTableHeader().setReorderingAllowed(false);
-
-		// QUITAMOS LAS BARRAS DE SCROLL
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroll.setBorder(BorderFactory.createEmptyBorder()); // Sin borde interno
+		scroll.getViewport().setBackground(new Color(0, 105, 148)); // Fondo de seguridad
 
-		panelTabla.add(scroll);
+		// --- 4. CONTENEDOR DE TAMAÑO EXACTO ---
+		JPanel contenedorTabla = new JPanel(new BorderLayout());
+		// Borde blanco semitransparente
+		contenedorTabla.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 2));
+
+		// CÁLCULO MATEMÁTICO:
+		// Altura = Altura real del Header + (10 filas * 45px) + (2px borde * 2 lados)
+		int altoHeader = header.getPreferredSize().height;
+		int altoCuerpo = 450; 
+		int borde = 2;
+
+		int altoTotal = altoHeader + altoCuerpo + (borde * 2);
+		int anchoTotal = 450 + (borde * 2);
+
+		Dimension dimensionExacta = new Dimension(anchoTotal, altoTotal);
+
+		// Forzamos al contenedor a tener ESE tamaño y ni un píxel más
+		contenedorTabla.setPreferredSize(dimensionExacta);
+		contenedorTabla.setMaximumSize(dimensionExacta);
+		contenedorTabla.setMinimumSize(dimensionExacta);
+
+		contenedorTabla.add(scroll, BorderLayout.CENTER);
+
+		// --- 5. PANEL CENTRADOR (GridBagLayout) ---
+		// Usamos GridBagLayout en el panel padre para que el contenedorTabla se quede en el centro
+		JPanel panelTabla = new JPanel(new GridBagLayout());
+		panelTabla.setOpaque(false);
+		panelTabla.add(contenedorTabla);
+
 		mainPanel.add(panelTabla, BorderLayout.CENTER);
 
 		// Panel Derecho (Controles)
