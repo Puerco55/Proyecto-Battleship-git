@@ -297,6 +297,7 @@ public class VentanaJuego extends JFrame {
 	private void ejecutarDisparoSimple(int fila, int col) {
 		// 1. Verificar Escudo
 		if (oponente.tieneEscudoActivo()) {
+			EfectosSonido.reproducir("resources/sounds/sonido_escudo.wav", -5.0f);
 			JOptionPane.showMessageDialog(this, "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n"
 					+ "Tu disparo ha sido bloqueado y tu turno termina.");
 			oponente.resetEscudoTurno();
@@ -306,7 +307,7 @@ public class VentanaJuego extends JFrame {
 		}
 
 		int resultado = procesarImpacto(fila, col);
-
+		
 		// Evaluar resultado del disparo y mostrar mensajes
 		if (resultado == 2) {
 			// Hundido - detectar tamaño con recursividad
@@ -321,11 +322,13 @@ public class VentanaJuego extends JFrame {
 
 		} else if (resultado == 1) {
 			// TOCADO
+			EfectosSonido.reproducir("resources/sounds/sonido_disparo.wav", -6.0f);
 			JOptionPane.showMessageDialog(this, "🎯 ¡TOCADO!\n\n¡Sigue disparando!", "Impacto",
 					JOptionPane.INFORMATION_MESSAGE);
 
 		} else {
 			// AGUA - Se acaba el turno
+			EfectosSonido.reproducir("resources/sounds/sonido_agua.wav", -8.0f);
 			yaDisparo = true;
 			JOptionPane.showMessageDialog(this, "🌊 Agua.. .\n\nFin de tus disparos.", "Fallo",
 					JOptionPane.INFORMATION_MESSAGE);
@@ -380,6 +383,7 @@ public class VentanaJuego extends JFrame {
 			return;
 
 		if (oponente.tieneEscudoActivo()) {
+			EfectosSonido.reproducir("resources/sounds/sonido_escudo.wav", -5.0f);
 			JOptionPane.showMessageDialog(this,
 					"El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" + "Tu disparo ha sido bloqueado.");
 			oponente.resetEscudoTurno();
@@ -387,6 +391,7 @@ public class VentanaJuego extends JFrame {
 			actualizarInterfaz();
 			return;
 		}
+		EfectosSonido.reproducir("resources/sounds/sonido_disparo2.wav", -5.0f);
 
 		int[][] coords = { { r, c }, { r - 1, c }, { r + 1, c }, { r, c - 1 }, { r, c + 1 } };
 		int aciertos = 0;
@@ -425,6 +430,7 @@ public class VentanaJuego extends JFrame {
 			return;
 
 		if (oponente.tieneEscudoActivo()) {
+			EfectosSonido.reproducir("resources/sounds/sonido_escudo.wav", -5.0f);
 			JOptionPane.showMessageDialog(this, "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n"
 					+ "El MEGA DISPARO ha sido bloqueado.");
 			oponente.resetEscudoTurno();
@@ -432,6 +438,7 @@ public class VentanaJuego extends JFrame {
 			actualizarInterfaz();
 			return;
 		}
+		EfectosSonido.reproducir("resources/sounds/sonido_disparo2.wav", -5.0f);
 
 		int aciertos = 0;
 		int hundidos = 0;
