@@ -5,7 +5,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.net.URL; // Importante para cargar recursos del JAR
 
 import javax.imageio.ImageIO;
@@ -736,32 +735,54 @@ public class VentanaJuego extends JFrame {
 
 	
 	private void cargarImagenEquipo() {
-		try {
-			String equipo = jugadorActual.getNombreEquipo();
-			if ("Submarine".equals(equipo))
-				equipo = "SubMarine";
-			
-			
-			String path = "/resources/images/Ship/Ship" + equipo + "Hull.png";
-			
-			URL imgUrl = getClass().getResource(path);
-			
-			if (imgUrl != null) {
-				imagenBarcoPropio = ImageIO.read(imgUrl);
-			} else {
-				
-				File f = new File("resources/images/Ship/Ship" + equipo + "Hull.png");
-				if (f.exists()) {
-					imagenBarcoPropio = ImageIO.read(f);
-				} else {
-					System.err.println("No se encuentra imagen: " + path);
-					imagenBarcoPropio = null;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			imagenBarcoPropio = null;
-		}
+	    String equipo = jugadorActual.getNombreEquipo();
+	    // Ajuste para el nombre del archivo (Submarine -> SubMarine)
+	    if ("Submarine".equals(equipo) || "submarine".equals(equipo)) {
+	        equipo = "SubMarine";
+	    }
+	    
+	    // Lista de rutas posibles donde podría estar la imagen
+	    String[] rutasAProbar = {
+	        "/resources/images/Ship/Ship" + equipo + "Hull.png", // Opción A: resources dentro de src
+	        "/images/Ship/Ship" + equipo + "Hull.png",           // Opción B: resources exportado como raíz
+	        "resources/images/Ship/Ship" + equipo + "Hull.png",  // Opción C: ruta relativa
+	        "images/Ship/Ship" + equipo + "Hull.png"             // Opción D: ruta relativa raíz
+	    };
+
+	    imagenBarcoPropio = null;
+
+	    for (String ruta : rutasAProbar) {
+	        try {
+	            // Intentamos cargar la URL del recurso
+	            URL url = getClass().getResource(ruta);
+	            if (url == null) {
+	                // Intento alternativo con classloader
+	                url = getClass().getClassLoader().getResource(ruta);
+	                if (url == null && ruta.startsWith("/")) {
+	                    url = getClass().getClassLoader().getResource(ruta.substring(1));
+	                }
+	            }
+
+	            if (url != null) {
+	                imagenBarcoPropio = ImageIO.read(url);
+	                // Si llegamos aquí, ¡la hemos encontrado!
+	                // System.out.println("Imagen cargada con éxito desde: " + ruta); 
+	                break; 
+	            }
+	        } catch (Exception e) {
+	            // Si falla, probamos la siguiente ruta
+	        }
+	    }
+
+	    if (imagenBarcoPropio == null) {
+	        System.err.println("❌ ERROR CRÍTICO: No se encuentra la imagen del barco " + equipo + " en ninguna ruta.");
+	        // Opcional: Cargar una imagen por defecto (un cuadrado rojo) para que no crashee
+	        imagenBarcoPropio = new BufferedImage(100, 30, BufferedImage.TYPE_INT_RGB);
+	        Graphics2D g = imagenBarcoPropio.createGraphics();
+	        g.setColor(Color.RED);
+	        g.fillRect(0,0,100,30);
+	        g.dispose();
+	    }
 	}
 
 	private void reconstruirFlotaModelo() {
