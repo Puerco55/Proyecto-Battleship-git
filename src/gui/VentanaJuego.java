@@ -508,29 +508,35 @@ public class VentanaJuego extends JFrame {
 	}
 
 	private void verificarVictoria() {
-		if (oponente.haPerdido()) {
-			juegoActivo = false;
+        if (oponente.haPerdido()) {
+            juegoActivo = false;
 
-			String tiempoFormateadoJ1 = formatearTiempo(tiempoRestanteJ1);
-			String tiempoFormateadoJ2 = formatearTiempo(tiempoRestanteJ2);
+            String tiempoFormateadoJ1 = formatearTiempo(tiempoRestanteJ1);
+            String tiempoFormateadoJ2 = formatearTiempo(tiempoRestanteJ2);
 
-			estadisticasDAO.guardarPartida("Jugador " + jugadorActual.getId(), turnosTotales, 5);
-			EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
+            
+            estadisticasDAO.guardarPartida(
+                "Jugador " + jugadorActual.getId(), 
+                turnosTotales, 
+                jugadorActual.getBarcosHundidos()
+            );
+            
+            EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
 
-			JOptionPane.showMessageDialog(this,
-					"¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" + "Turnos totales: " + turnosTotales
-							+ "\n" + "Tiempo restante J1: " + tiempoFormateadoJ1 + "\n" + "Tiempo restante J2: "
-							+ tiempoFormateadoJ2,
-					"VICTORIA", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" + 
+                    "Turnos totales: " + turnosTotales + "\n" + 
+                    "Tiempo restante J1: " + tiempoFormateadoJ1 + "\n" + 
+                    "Tiempo restante J2: " + tiempoFormateadoJ2,
+                    "VICTORIA", JOptionPane.INFORMATION_MESSAGE);
 
-			
-			dispose();
-			new MainMenu().setVisible(true);
-			if (musicaFondo != null) {
+            dispose();
+            new MainMenu().setVisible(true);
+            if (musicaFondo != null) {
                 musicaFondo.detener();
-			}
-		}
-	}
+            }
+        }
+    }
 
 	private void cambiarTurno() {
 		// Solo verificamos si ha disparado si es un turno donde falló.
@@ -586,23 +592,31 @@ public class VentanaJuego extends JFrame {
 	}
 
 	private void rendirse() {
-		int confirm = JOptionPane.showConfirmDialog(this,
-				"¿Seguro que deseas rendirte?\n\nEl jugador " + oponente.getId() + " ganará la partida.",
-				"Confirmar Rendición", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Seguro que deseas rendirte?\n\nEl jugador " + oponente.getId() + " ganará la partida.",
+                "Confirmar Rendición", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
-		if (confirm != JOptionPane.YES_OPTION)
-			return;
+        if (confirm != JOptionPane.YES_OPTION)
+            return;
 
-		juegoActivo = false;
-		EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
-		JOptionPane.showMessageDialog(this, "El JUGADOR " + jugadorActual.getId() + " se ha rendido.\n\n"
-				+ "🏆 GANA EL JUGADOR " + oponente.getId(), "Fin de la partida", JOptionPane.INFORMATION_MESSAGE);
+        juegoActivo = false;
+        
+        
+        estadisticasDAO.guardarPartida(
+            "Jugador " + oponente.getId(), 
+            turnosTotales, 
+            oponente.getBarcosHundidos()
+        );
 
-		
+        EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
+        JOptionPane.showMessageDialog(this, "El JUGADOR " + jugadorActual.getId() + " se ha rendido.\n\n"
+                + "GANA EL JUGADOR " + oponente.getId(), "Fin de la partida", JOptionPane.INFORMATION_MESSAGE);
 
-		dispose();
-		new MainMenu().setVisible(true);
-	}
+        if (musicaFondo != null) musicaFondo.detener();
+
+        dispose();
+        new MainMenu().setVisible(true);
+    }
 
 	private void actualizarInterfaz() {
 		labelInfoJugador.setText("Turno del JUGADOR " + jugadorActual.getId());
@@ -620,7 +634,6 @@ public class VentanaJuego extends JFrame {
 		botonMegaDisparo.setEnabled(jugadorActual.getMegaDisparos() > 0);
 		botonEscudo.setEnabled(jugadorActual.getEscudos() > 0);
 
-		// ... resto del código existente para actualizar tableros ...
 
 		// Tablero Ataque
 		boolean[][] disparos = jugadorActual.getTableroDisparos();

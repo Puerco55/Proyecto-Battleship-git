@@ -46,7 +46,7 @@ public class MenuEstadisticas extends JFrame {
         dao = new EstadisticasDAO();
 
         setTitle("Estadísticas Históricas y Gestión de BD");
-        setSize(700, 550); // Un poco más ancho para los botones
+        setSize(700, 550); 
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -185,7 +185,7 @@ public class MenuEstadisticas extends JFrame {
         }
     }
 
-    // Estilos visuales (Igual que tenías)
+    // Estilos visuales (MODIFICADO PARA BLOQUEAR COLUMNAS)
     private void estilizarTabla(JTable table) {
         table.setOpaque(false);
         ((DefaultTableCellRenderer)table.getDefaultRenderer(Object.class)).setOpaque(false);
@@ -198,6 +198,10 @@ public class MenuEstadisticas extends JFrame {
         header.setBackground(new Color(0,0,0,150));
         header.setForeground(Color.WHITE);
         header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        
+        // --- BLOQUEO DE COLUMNAS ---
+        header.setReorderingAllowed(false); // Impide arrastrar columnas para cambiar el orden
+        header.setResizingAllowed(false);   // Impide cambiar el tamaño (ancho) de las columnas
     }
 
     private JButton crearBotonEstilizado(String texto) {
