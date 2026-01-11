@@ -16,6 +16,7 @@ import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL; // IMPORTANTE: Necesario para cargar recursos en JAR
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -146,12 +147,25 @@ public class SeleccionPerfil extends JFrame {
             String nombreEquipo = equiposDisponibles[indiceActual];
             labelEquipo.setText(nombreEquipo);
             
+            // --- CAMBIO IMPORTANTE PARA EL JAR ---
             try {
-                ImageIcon icon = new ImageIcon("resources/images/Team/" + nombreEquipo + "Team.png");
-                if(icon.getIconWidth() == -1) { 
-                    imagenEquipoLabel.setText("Sin Imagen"); 
+                // 1. Construimos la ruta asumiendo que 'resources' es Source Folder
+                String rutaImagen = "/images/Team/" + nombreEquipo + "Team.png";
+                
+                // 2. Usamos getResource
+                URL imgUrl = getClass().getResource(rutaImagen);
+                
+                // 3. Comprobamos si existe la imagen dentro del JAR
+                if(imgUrl == null) { 
+                    imagenEquipoLabel.setText("Sin Imagen");
+                    imagenEquipoLabel.setIcon(null);
+                    System.err.println("Imagen no encontrada: " + rutaImagen);
                     return;
                 }
+                
+                // 4. Creamos el icono con la URL válida
+                ImageIcon icon = new ImageIcon(imgUrl);
+                imagenEquipoLabel.setText(""); // Borrar texto si hay imagen
                 
                 Image img = icon.getImage();
                 int w = Math.max(200, getWidth() - 40);
