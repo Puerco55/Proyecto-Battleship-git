@@ -40,7 +40,7 @@ public class VentanaJuego extends JFrame {
 	private BufferedImage imagenBarcoPropio; // Imagen del equipo actual
 
 	// Musica de fondo
-	
+	private ReproductorAudio musicaFondo;
 
 	// Estadísticas UI
 	private JLabel labelAciertos, labelFallos, labelBarcosHundidos;
@@ -84,6 +84,10 @@ public class VentanaJuego extends JFrame {
 		inicializarComponentes();
 		actualizarInterfaz();
 		iniciarCronometro();
+		
+		musicaFondo = new ReproductorAudio();
+        // 0.0f es el volumen máximo natural del archivo. 
+        musicaFondo.reproducir("musica_batalla.wav", 0.0f);
 
 		
 	}
@@ -511,6 +515,9 @@ public class VentanaJuego extends JFrame {
 			
 			dispose();
 			new MainMenu().setVisible(true);
+			if (musicaFondo != null) {
+                musicaFondo.detener();
+			}
 		}
 	}
 
@@ -676,6 +683,8 @@ public class VentanaJuego extends JFrame {
 		juegoActivo = false;
 		JOptionPane.showMessageDialog(this, "¡EL JUGADOR " + jugador.getId() + " SE QUEDÓ SIN TIEMPO!\n" + "El jugador "
 				+ oponente.getId() + " gana la partida.", "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
+		
+		if (musicaFondo != null) musicaFondo.detener();
 
 		
 
