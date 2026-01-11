@@ -317,7 +317,7 @@ public class VentanaJuego extends JFrame {
 			DetectorHundimiento detector = new DetectorHundimiento(oponente.getTableroPropio(),
 					oponente.getImpactosRecibidos());
 			int tamaño = detector.contarTamañoBarco(fila, col);
-
+			EfectosSonido.reproducir("resources/sounds/sonido_barco_hundido.wav", -5.0f);
 			JOptionPane.showMessageDialog(this,
 					"💥 ¡¡HUNDIDO!!  💥\n\n" + "¡Has hundido un barco de " + tamaño + " casillas!\n"
 							+ "Barcos hundidos: " + jugadorActual.getBarcosHundidos() + "\n\n" + "¡Sigue disparando!",
@@ -552,11 +552,12 @@ public class VentanaJuego extends JFrame {
 
 		cronometroPausado = true;
 		turnosTotales++;
-
+		
+		Jugador jugadorSiguiente = oponente;
 		if (jugadorActual == j1) {
-			tiempoRestanteJ1 += 6;
+			tiempoRestanteJ1 =  Math.min(tiempoRestanteJ1 + 6, 120);; // 120s de maximo
 		} else {
-			tiempoRestanteJ2 += 6;
+			tiempoRestanteJ2 = Math.min(tiempoRestanteJ2 + 6, 120);; // 120s de maximo
 		}
 
 		String tiempoActual = (jugadorActual == j1) ? formatearTiempo(tiempoRestanteJ1)
