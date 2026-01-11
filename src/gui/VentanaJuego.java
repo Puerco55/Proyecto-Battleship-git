@@ -40,7 +40,7 @@ public class VentanaJuego extends JFrame {
 	private BufferedImage imagenBarcoPropio; // Imagen del equipo actual
 
 	// Musica de fondo
-	private ReproductorAudio musicaFondo;
+	
 
 	// Estadísticas UI
 	private JLabel labelAciertos, labelFallos, labelBarcosHundidos;
@@ -85,9 +85,7 @@ public class VentanaJuego extends JFrame {
 		actualizarInterfaz();
 		iniciarCronometro();
 
-		musicaFondo = new ReproductorAudio();
-		// 0.0f es el volumen máximo natural del archivo.
-		musicaFondo.reproducir("musica_batalla.wav", 0.0f);
+		
 	}
 
 	private void configurarTurno(Jugador actual, Jugador enemigo) {
@@ -174,26 +172,56 @@ public class VentanaJuego extends JFrame {
 		panelDerecho.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0),
 				"Tu Flota:", 0, 0, new Font("Segoe UI", Font.BOLD, 14), COLOR_TEXTO));
 
-		// Tablero propio (JTable con renderer)
+		// --- TABLERO PROPIO ---
 		modeloFlota = new ModeloFlota();
-		reconstruirFlotaModelo(); // Convierte int[][] a objetos para pintar
+		reconstruirFlotaModelo();
 
 		tablaFlota = new JTable(modeloFlota);
-		tablaFlota.setRowHeight(25); // 250px / 10 = 25px
-		tablaFlota.setEnabled(false); // No interactuable
+		tablaFlota.setRowHeight(25); // 10 filas * 25px = 250px exactos de cuerpo
+		tablaFlota.setEnabled(false); // Desactiva clicks
 		tablaFlota.setShowGrid(true);
 		tablaFlota.setGridColor(new Color(0, 0, 0, 50));
 		tablaFlota.setDefaultRenderer(Object.class, new BarcoRenderer());
+		tablaFlota.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Importante para control total
 
-		// Ajustar columnas
-		for (int i = 0; i < 10; i++)
-			tablaFlota.getColumnModel().getColumn(i).setPreferredWidth(25);
+		// --- BLOQUEO TOTAL DEL HEADER (Nivel Paranoico) ---
+		javax.swing.table.JTableHeader header = tablaFlota.getTableHeader();
+		header.setResizingAllowed(false);
+		header.setReorderingAllowed(false);
+		header.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
+		// Bloqueamos cada columna individualmente para asegurar que no se pueden mover
+		for (int i = 0; i < 10; i++) {
+		    javax.swing.table.TableColumn col = tablaFlota.getColumnModel().getColumn(i);
+		    col.setPreferredWidth(25);
+		    col.setMinWidth(25);
+		    col.setMaxWidth(25);
+		    col.setResizable(false); // <--- ESTO ES LA CLAVE para que no aparezca la flecha de redimensionar
+		}
+
+		// --- CONTENEDOR AJUSTADO ---
 		JPanel contenedorTabla = new JPanel(new BorderLayout());
-		contenedorTabla.setPreferredSize(new Dimension(251, 251)); // +1 px border
-		contenedorTabla.setMaximumSize(new Dimension(251, 251));
-		contenedorTabla.setBorder(BorderFactory.createLineBorder(new Color(100, 200, 255), 2));
-		contenedorTabla.add(tablaFlota);
+		// Añadimos header y tabla
+		contenedorTabla.add(header, BorderLayout.NORTH);
+		contenedorTabla.add(tablaFlota, BorderLayout.CENTER);
+
+		// --- CÁLCULO MATEMÁTICO DINÁMICO ---
+		// Obtenemos la altura REAL que tiene la cabecera en tu ordenador
+		int alturaHeader = header.getPreferredSize().height;
+		int alturaCuerpo = 250; // 10 filas * 25px
+		int borde = 2; // 2 pixeles de borde
+
+		// La altura total debe ser la suma de todo. 
+		// Antes faltaba sumar 'alturaHeader', por eso se descuadraba.
+		int altoTotal = alturaHeader + alturaCuerpo + (borde * 2);
+		int anchoTotal = 250 + (borde * 2);
+
+		Dimension dimensionExacta = new Dimension(anchoTotal, altoTotal);
+
+		contenedorTabla.setPreferredSize(dimensionExacta);
+		contenedorTabla.setMaximumSize(dimensionExacta);
+		contenedorTabla.setMinimumSize(dimensionExacta);
+		contenedorTabla.setBorder(BorderFactory.createLineBorder(new Color(100, 200, 255), borde));
 
 		panelDerecho.add(contenedorTabla);
 
@@ -480,9 +508,7 @@ public class VentanaJuego extends JFrame {
 							+ tiempoFormateadoJ2,
 					"VICTORIA", JOptionPane.INFORMATION_MESSAGE);
 
-			if (musicaFondo != null) {
-				musicaFondo.detener();
-			}
+			
 			dispose();
 			new MainMenu().setVisible(true);
 		}
@@ -554,9 +580,7 @@ public class VentanaJuego extends JFrame {
 		JOptionPane.showMessageDialog(this, "El JUGADOR " + jugadorActual.getId() + " se ha rendido.\n\n"
 				+ "🏆 GANA EL JUGADOR " + oponente.getId(), "Fin de la partida", JOptionPane.INFORMATION_MESSAGE);
 
-		if (musicaFondo != null) {
-			musicaFondo.detener();
-		}
+		
 
 		dispose();
 		new MainMenu().setVisible(true);
@@ -653,8 +677,7 @@ public class VentanaJuego extends JFrame {
 		JOptionPane.showMessageDialog(this, "¡EL JUGADOR " + jugador.getId() + " SE QUEDÓ SIN TIEMPO!\n" + "El jugador "
 				+ oponente.getId() + " gana la partida.", "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
 
-		if (musicaFondo != null)
-			musicaFondo.detener();
+		
 
 		dispose();
 		new MainMenu().setVisible(true);
