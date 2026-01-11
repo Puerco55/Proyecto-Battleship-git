@@ -87,7 +87,7 @@ public class VentanaJuego extends JFrame {
 		
 		musicaFondo = new ReproductorAudio();
         // 0.0f es el volumen máximo natural del archivo. 
-        musicaFondo.reproducir("musica_batalla.wav", 0.0f);
+        musicaFondo.reproducir("resources/sounds/musicaFondo.wav", -15f);
 
 		
 	}
@@ -246,8 +246,11 @@ public class VentanaJuego extends JFrame {
 		botonPasarTurno.addActionListener(e -> cambiarTurno());
 
 		botonRendirse = crearBotonEstilizado("RENDIRSE", COLOR_BOTON_RENDIRSE);
-		botonRendirse.addActionListener(e -> rendirse());
-
+		botonRendirse.addActionListener(e -> {
+			rendirse();
+			if (musicaFondo != null) musicaFondo.detener();
+		});
+		
 		panelDerecho.add(alinearBoton(botonEscudo));
 		panelDerecho.add(Box.createVerticalStrut(5)); // Pequeña separación
 		panelDerecho.add(alinearBoton(botonSuperDisparo));
