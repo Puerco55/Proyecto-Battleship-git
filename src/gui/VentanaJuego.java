@@ -12,7 +12,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import db.EstadisticasDAO;
 import domain.Jugador;
@@ -188,35 +190,34 @@ public class VentanaJuego extends JFrame {
 		tablaFlota.setDefaultRenderer(Object.class, new BarcoRenderer());
 		tablaFlota.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Importante para control total
 
-		// --- BLOQUEO TOTAL DEL HEADER (Nivel Paranoico) ---
-		javax.swing.table.JTableHeader header = tablaFlota.getTableHeader();
+		
+		JTableHeader header = tablaFlota.getTableHeader();
 		header.setResizingAllowed(false);
 		header.setReorderingAllowed(false);
 		header.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
 		// Bloqueamos cada columna individualmente para asegurar que no se pueden mover
 		for (int i = 0; i < 10; i++) {
-		    javax.swing.table.TableColumn col = tablaFlota.getColumnModel().getColumn(i);
+		    TableColumn col = tablaFlota.getColumnModel().getColumn(i);
 		    col.setPreferredWidth(25);
 		    col.setMinWidth(25);
 		    col.setMaxWidth(25);
-		    col.setResizable(false); // <--- ESTO ES LA CLAVE para que no aparezca la flecha de redimensionar
+		    col.setResizable(false); 
 		}
 
-		// --- CONTENEDOR AJUSTADO ---
+		
 		JPanel contenedorTabla = new JPanel(new BorderLayout());
 		// Añadimos header y tabla
 		contenedorTabla.add(header, BorderLayout.NORTH);
 		contenedorTabla.add(tablaFlota, BorderLayout.CENTER);
 
-		// --- CÁLCULO MATEMÁTICO DINÁMICO ---
+		
 		// Obtenemos la altura REAL que tiene la cabecera en tu ordenador
 		int alturaHeader = header.getPreferredSize().height;
 		int alturaCuerpo = 250; // 10 filas * 25px
 		int borde = 2; // 2 pixeles de borde
 
 		// La altura total debe ser la suma de todo. 
-		// Antes faltaba sumar 'alturaHeader', por eso se descuadraba.
 		int altoTotal = alturaHeader + alturaCuerpo + (borde * 2);
 		int anchoTotal = 250 + (borde * 2);
 
@@ -538,6 +539,7 @@ public class VentanaJuego extends JFrame {
         }
     }
 
+	@SuppressWarnings("unused")
 	private void cambiarTurno() {
 		// Solo verificamos si ha disparado si es un turno donde falló.
 		// Si ha acertado 3 veces y quiere pasar, puede hacerlo.
