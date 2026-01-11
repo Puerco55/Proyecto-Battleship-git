@@ -1,26 +1,32 @@
 package gui;
 
-import java.io.File;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
+import java.net.URL;
+import javax.sound.sampled.*;
 
 public class EfectosSonido {
 	
 	public static void reproducir(String ruta, float volumen) {
         new Thread(() -> {
             try {
-                File archivo = new File(ruta);
-                AudioInputStream audioinpuStream = AudioSystem.getAudioInputStream(archivo);
-                Clip clip = AudioSystem.getClip();
-                clip.open(audioinpuStream);
+                // Adaptación para JAR
+                URL url = EfectosSonido.class.getResource("/" + ruta);
+                
+                if (url == null) {
+                     url = EfectosSonido.class.getResource(ruta);
+                }
 
-                FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                gain.setValue(volumen);
+                if (url != null) {
+                    AudioInputStream audioinpuStream = AudioSystem.getAudioInputStream(url);
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioinpuStream);
 
-                clip.start();
+                    FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                    gain.setValue(volumen);
+
+                    clip.start();
+                } else {
+                    System.err.println("Audio no encontrado: " + ruta);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

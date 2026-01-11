@@ -1,4 +1,3 @@
-
 package gui;
 
 import java.awt.*;
@@ -7,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL; // Importante para cargar recursos del JAR
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -53,6 +53,10 @@ public class VentanaJuego extends JFrame {
 	private Jugador j2;
 	private Jugador jugadorActual;
 	private Jugador oponente;
+	
+	// Nombres Personalizados
+	private String nombreJ1;
+	private String nombreJ2;
 
 	private int turnosTotales = 0;
 	private boolean superDisparoActivo = false;
@@ -68,9 +72,13 @@ public class VentanaJuego extends JFrame {
 	private volatile boolean juegoActivo = true;
 	private EstadisticasDAO estadisticasDAO;
 
+	// CONSTRUCTOR ACTUALIZADO: Acepta nombres
 	public VentanaJuego(int numeroJugadorInicial, int superDisparos, int megaDisparos, int escudos, int[][] tableroJ1,
-			int[][] tableroJ2, String equipoJ1, String equipoJ2) {
+			int[][] tableroJ2, String equipoJ1, String equipoJ2, String nombreJ1, String nombreJ2) {
 
+		this.nombreJ1 = nombreJ1;
+		this.nombreJ2 = nombreJ2;
+		
 		this.j1 = new Jugador(1, tableroJ1, superDisparos, megaDisparos, escudos, equipoJ1);
 		this.j2 = new Jugador(2, tableroJ2, superDisparos, megaDisparos, escudos, equipoJ2);
 		this.estadisticasDAO = new EstadisticasDAO();
@@ -82,16 +90,14 @@ public class VentanaJuego extends JFrame {
 		}
 
 		configurarVentana();
-		cargarImagenEquipo();
+		cargarImagenEquipo(); // Ahora usa método compatible con JAR
 		inicializarComponentes();
 		actualizarInterfaz();
 		iniciarCronometro();
 		
 		musicaFondo = new ReproductorAudio();
-        // 0.0f es el volumen máximo natural del archivo. 
+        // Usamos ruta absoluta del classpath con "/" al inicio para compatibilidad JAR
         musicaFondo.reproducir("resources/sounds/musicaFondo.wav", -15f);
-
-		
 	}
 
 	private void configurarTurno(Jugador actual, Jugador enemigo) {
@@ -102,7 +108,7 @@ public class VentanaJuego extends JFrame {
 	private void configurarVentana() {
 		setTitle("Hundir la Flota - Batalla Naval");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(900, 650);
+		setSize(950, 700); // Un poco más grande para acomodar nombres largos
 		setLocationRelativeTo(null);
 		setResizable(false);
 	}
@@ -141,7 +147,8 @@ public class VentanaJuego extends JFrame {
 		panelInfo.add(statsPanel, BorderLayout.WEST);
 		panelInfo.add(labelTiempo, BorderLayout.EAST);
 
-		labelInfoJugador = new JLabel("Turno del JUGADOR " + jugadorActual.getId(), SwingConstants.CENTER);
+		// Etiqueta de turno (se actualizará con el nombre)
+		labelInfoJugador = new JLabel("", SwingConstants.CENTER);
 		labelInfoJugador.setFont(new Font("Segoe UI", Font.BOLD, 20));
 		labelInfoJugador.setForeground(COLOR_TEXTO);
 		panelInfo.add(labelInfoJugador, BorderLayout.SOUTH);
@@ -174,7 +181,6 @@ public class VentanaJuego extends JFrame {
 		panelDerecho.setLayout(new BoxLayout(panelDerecho, BoxLayout.Y_AXIS));
 		panelDerecho.setPreferredSize(new Dimension(280, 0));
 
-		// El borde debe coincidir con el del radar para alinear los contenidos
 		panelDerecho.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0),
 				"Tu Flota:", 0, 0, new Font("Segoe UI", Font.BOLD, 14), COLOR_TEXTO));
 
@@ -183,20 +189,18 @@ public class VentanaJuego extends JFrame {
 		reconstruirFlotaModelo();
 
 		tablaFlota = new JTable(modeloFlota);
-		tablaFlota.setRowHeight(25); // 10 filas * 25px = 250px exactos de cuerpo
-		tablaFlota.setEnabled(false); // Desactiva clicks
+		tablaFlota.setRowHeight(25);
+		tablaFlota.setEnabled(false);
 		tablaFlota.setShowGrid(true);
 		tablaFlota.setGridColor(new Color(0, 0, 0, 50));
 		tablaFlota.setDefaultRenderer(Object.class, new BarcoRenderer());
-		tablaFlota.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Importante para control total
+		tablaFlota.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
-		
 		JTableHeader header = tablaFlota.getTableHeader();
 		header.setResizingAllowed(false);
 		header.setReorderingAllowed(false);
 		header.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-		// Bloqueamos cada columna individualmente para asegurar que no se pueden mover
 		for (int i = 0; i < 10; i++) {
 		    TableColumn col = tablaFlota.getColumnModel().getColumn(i);
 		    col.setPreferredWidth(25);
@@ -204,20 +208,15 @@ public class VentanaJuego extends JFrame {
 		    col.setMaxWidth(25);
 		    col.setResizable(false); 
 		}
-
 		
 		JPanel contenedorTabla = new JPanel(new BorderLayout());
-		// Añadimos header y tabla
 		contenedorTabla.add(header, BorderLayout.NORTH);
 		contenedorTabla.add(tablaFlota, BorderLayout.CENTER);
 
-		
-		// Obtenemos la altura REAL que tiene la cabecera en tu ordenador
 		int alturaHeader = header.getPreferredSize().height;
-		int alturaCuerpo = 250; // 10 filas * 25px
-		int borde = 2; // 2 pixeles de borde
+		int alturaCuerpo = 250; 
+		int borde = 2; 
 
-		// La altura total debe ser la suma de todo. 
 		int altoTotal = alturaHeader + alturaCuerpo + (borde * 2);
 		int anchoTotal = 250 + (borde * 2);
 
@@ -229,8 +228,6 @@ public class VentanaJuego extends JFrame {
 		contenedorTabla.setBorder(BorderFactory.createLineBorder(new Color(100, 200, 255), borde));
 
 		panelDerecho.add(contenedorTabla);
-
-		// Empujador para centrar verticalmente o alinear botones al fondo
 		panelDerecho.add(Box.createVerticalGlue());
 
 		// Botones
@@ -253,15 +250,15 @@ public class VentanaJuego extends JFrame {
 		});
 		
 		panelDerecho.add(alinearBoton(botonEscudo));
-		panelDerecho.add(Box.createVerticalStrut(5)); // Pequeña separación
+		panelDerecho.add(Box.createVerticalStrut(5)); 
 		panelDerecho.add(alinearBoton(botonSuperDisparo));
-		panelDerecho.add(Box.createVerticalStrut(5)); // Pequeña separación
+		panelDerecho.add(Box.createVerticalStrut(5)); 
 		panelDerecho.add(alinearBoton(botonMegaDisparo));
 
-		panelDerecho.add(Box.createVerticalStrut(20)); // Separación mayor
+		panelDerecho.add(Box.createVerticalStrut(20)); 
 		panelDerecho.add(alinearBoton(botonPasarTurno));
 
-		panelDerecho.add(Box.createVerticalStrut(5)); // Separación mayor
+		panelDerecho.add(Box.createVerticalStrut(5)); 
 		panelDerecho.add(alinearBoton(botonRendirse));
 
 		panelPrincipal.add(panelDerecho, BorderLayout.EAST);
@@ -281,8 +278,6 @@ public class VentanaJuego extends JFrame {
 	}
 
 	private void procesarClicCelda(int fila, int col) {
-		// Si ya se ha acabado el turno (porque se falló o se usó especial), no dejar
-		// clicar
 		if (yaDisparo) {
 			JOptionPane.showMessageDialog(this, "Tu turno de ataque ha terminado. Pulsa 'Terminar Turno'.");
 			return;
@@ -302,7 +297,7 @@ public class VentanaJuego extends JFrame {
 		// 1. Verificar Escudo
 		if (oponente.tieneEscudoActivo()) {
 			EfectosSonido.reproducir("resources/sounds/sonido_escudo.wav", -5.0f);
-			JOptionPane.showMessageDialog(this, "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n"
+			JOptionPane.showMessageDialog(this, "El jugador " + obtenerNombreOponente() + " tenía un ESCUDO activo.\n"
 					+ "Tu disparo ha sido bloqueado y tu turno termina.");
 			oponente.resetEscudoTurno();
 			yaDisparo = true;
@@ -312,9 +307,8 @@ public class VentanaJuego extends JFrame {
 
 		int resultado = procesarImpacto(fila, col);
 		
-		// Evaluar resultado del disparo y mostrar mensajes
 		if (resultado == 2) {
-			// Hundido - detectar tamaño con recursividad
+			// Hundido
 			DetectorHundimiento detector = new DetectorHundimiento(oponente.getTableroPropio(),
 					oponente.getImpactosRecibidos());
 			int tamaño = detector.contarTamañoBarco(fila, col);
@@ -331,10 +325,10 @@ public class VentanaJuego extends JFrame {
 					JOptionPane.INFORMATION_MESSAGE);
 
 		} else {
-			// AGUA - Se acaba el turno
+			// AGUA
 			EfectosSonido.reproducir("resources/sounds/sonido_agua.wav", -8.0f);
 			yaDisparo = true;
-			JOptionPane.showMessageDialog(this, "🌊 Agua.. .\n\nFin de tus disparos.", "Fallo",
+			JOptionPane.showMessageDialog(this, "🌊 Agua...\n\nFin de tus disparos.", "Fallo",
 					JOptionPane.INFORMATION_MESSAGE);
 		}
 
@@ -342,41 +336,33 @@ public class VentanaJuego extends JFrame {
 		actualizarInterfaz();
 	}
 
-	// Procesa un impacto: 0=Agua, 1=Tocado, 2=Hundido
 	private int procesarImpacto(int fila, int col) {
-		// Validar límites
 		if (fila < 0 || fila >= 10 || col < 0 || col >= 10) {
 			return 0;
 		}
 
-		// Verificar si ya se disparó aquí
 		if (jugadorActual.getTableroDisparos()[fila][col]) {
-			return 0; // Ya disparado
+			return 0; 
 		}
 
-		// Marcar como disparado
 		jugadorActual.getTableroDisparos()[fila][col] = true;
 
-		// Verificar si hay barco en esta posición (ID > 0)
 		if (oponente.getTableroPropio()[fila][col] > 0) {
-			// ¡IMPACTO!
 			oponente.getImpactosRecibidos()[fila][col] = true;
 			jugadorActual.incrementarAciertos();
 			oponente.recibirImpacto();
 
-			// Detectar si el barco está hundido usando recursividad
 			DetectorHundimiento detector = new DetectorHundimiento(oponente.getTableroPropio(),
 					oponente.getImpactosRecibidos());
 
 			if (detector.estaBarcoHundido(fila, col)) {
 				jugadorActual.incrementarBarcosHundidos();
 				oponente.marcarBarcoHundido(fila, col, oponente.getTableroPropio());
-				return 2; // Hundido
+				return 2; 
 			}
 
-			return 1; // Tocado (pero no hundido)
+			return 1; 
 		} else {
-			// AGUA
 			jugadorActual.incrementarFallos();
 			return 0;
 		}
@@ -389,7 +375,7 @@ public class VentanaJuego extends JFrame {
 		if (oponente.tieneEscudoActivo()) {
 			EfectosSonido.reproducir("resources/sounds/sonido_escudo.wav", -5.0f);
 			JOptionPane.showMessageDialog(this,
-					"El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n" + "Tu disparo ha sido bloqueado.");
+					"El jugador " + obtenerNombreOponente() + " tenía un ESCUDO activo.\n" + "Tu disparo ha sido bloqueado.");
 			oponente.resetEscudoTurno();
 			yaDisparo = true;
 			actualizarInterfaz();
@@ -413,7 +399,6 @@ public class VentanaJuego extends JFrame {
 
 		jugadorActual.usarSuperDisparo();
 
-		// Mensaje mejorado
 		String mensaje = "Super Disparo completado.\n\nImpactos:  " + aciertos;
 		if (hundidos > 0) {
 			mensaje += "\n💥 ¡Barcos hundidos: " + hundidos + "!";
@@ -435,7 +420,7 @@ public class VentanaJuego extends JFrame {
 
 		if (oponente.tieneEscudoActivo()) {
 			EfectosSonido.reproducir("resources/sounds/sonido_escudo.wav", -5.0f);
-			JOptionPane.showMessageDialog(this, "El jugador " + oponente.getId() + " tenía un ESCUDO activo.\n"
+			JOptionPane.showMessageDialog(this, "El jugador " + obtenerNombreOponente() + " tenía un ESCUDO activo.\n"
 					+ "El MEGA DISPARO ha sido bloqueado.");
 			oponente.resetEscudoTurno();
 			yaDisparo = true;
@@ -461,7 +446,6 @@ public class VentanaJuego extends JFrame {
 
 		jugadorActual.usarMegaDisparo();
 
-		// Mensaje mejorado
 		String mensaje = "Mega Disparo completado.\n\nImpactos: " + aciertos;
 		if (hundidos > 0) {
 			mensaje += "\n💥 ¡Barcos hundidos: " + hundidos + "!";
@@ -475,20 +459,6 @@ public class VentanaJuego extends JFrame {
 		verificarVictoria();
 		actualizarInterfaz();
 		JOptionPane.showMessageDialog(this, mensaje, "Mega Disparo", JOptionPane.INFORMATION_MESSAGE);
-	}
-
-	@SuppressWarnings("unused")
-	private void finalizarAtaqueEspecial(String nombre, int aciertos) {
-		superDisparoActivo = false;
-		megaDisparoActivo = false;
-
-		// Los ataques especiales siempre acaban el turno, den o no.
-		yaDisparo = true;
-
-		verificarVictoria();
-		actualizarInterfaz();
-		JOptionPane.showMessageDialog(this,
-				nombre + " completado.\nImpactos: " + aciertos + "\nEl ataque especial finaliza tu turno.");
 	}
 
 	private void activarHabilidad(boolean esSuper, boolean esMega) {
@@ -514,10 +484,10 @@ public class VentanaJuego extends JFrame {
 
             String tiempoFormateadoJ1 = formatearTiempo(tiempoRestanteJ1);
             String tiempoFormateadoJ2 = formatearTiempo(tiempoRestanteJ2);
-
+            String nombreGanador = obtenerNombreActual();
             
             estadisticasDAO.guardarPartida(
-                "Jugador " + jugadorActual.getId(), 
+                nombreGanador, 
                 turnosTotales, 
                 jugadorActual.getBarcosHundidos()
             );
@@ -525,10 +495,10 @@ public class VentanaJuego extends JFrame {
             EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
 
             JOptionPane.showMessageDialog(this,
-                    "¡EL JUGADOR " + jugadorActual.getId() + " GANA LA GUERRA!\n\n" + 
+                    "¡" + nombreGanador.toUpperCase() + " GANA LA GUERRA!\n\n" + 
                     "Turnos totales: " + turnosTotales + "\n" + 
-                    "Tiempo restante J1: " + tiempoFormateadoJ1 + "\n" + 
-                    "Tiempo restante J2: " + tiempoFormateadoJ2,
+                    "Tiempo J1: " + tiempoFormateadoJ1 + "\n" + 
+                    "Tiempo J2: " + tiempoFormateadoJ2,
                     "VICTORIA", JOptionPane.INFORMATION_MESSAGE);
 
             dispose();
@@ -541,11 +511,7 @@ public class VentanaJuego extends JFrame {
 
 	@SuppressWarnings("unused")
 	private void cambiarTurno() {
-		// Solo verificamos si ha disparado si es un turno donde falló.
-		// Si ha acertado 3 veces y quiere pasar, puede hacerlo.
 		if (!yaDisparo) {
-			// Permitir pasar turno sin disparar si se arrepiente, o forzar disparo.
-			// Dejamos la confirmación:
 			int confirm = JOptionPane.showConfirmDialog(this, "¿Pasar sin atacar/fallar?", "Confirmar",
 					JOptionPane.YES_NO_OPTION);
 			if (confirm != JOptionPane.YES_OPTION)
@@ -555,11 +521,10 @@ public class VentanaJuego extends JFrame {
 		cronometroPausado = true;
 		turnosTotales++;
 		
-		Jugador jugadorSiguiente = oponente;
 		if (jugadorActual == j1) {
-			tiempoRestanteJ1 =  Math.min(tiempoRestanteJ1 + 6, 120);; // 120s de maximo
+			tiempoRestanteJ1 =  Math.min(tiempoRestanteJ1 + 6, 120);; 
 		} else {
-			tiempoRestanteJ2 = Math.min(tiempoRestanteJ2 + 6, 120);; // 120s de maximo
+			tiempoRestanteJ2 = Math.min(tiempoRestanteJ2 + 6, 120);; 
 		}
 
 		String tiempoActual = (jugadorActual == j1) ? formatearTiempo(tiempoRestanteJ1)
@@ -567,8 +532,8 @@ public class VentanaJuego extends JFrame {
 
 		this.setVisible(false);
 
-		JOptionPane.showMessageDialog(this, "Fin del turno. Tiempo restante del jugador: " + tiempoActual + "\n\n"
-				+ "Pasa el dispositivo al OTRO jugador.", "Cambio de Jugador", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, "Fin del turno. Tiempo restante: " + tiempoActual + "\n\n"
+				+ "Pasa el dispositivo a " + obtenerNombreOponente(), "Cambio de Jugador", JOptionPane.INFORMATION_MESSAGE);
 
 		this.setVisible(true);
 
@@ -576,7 +541,6 @@ public class VentanaJuego extends JFrame {
 		jugadorActual = oponente;
 		oponente = temp;
 
-		// Resetear variables de turno
 		yaDisparo = false;
 		superDisparoActivo = false;
 		megaDisparoActivo = false;
@@ -588,7 +552,6 @@ public class VentanaJuego extends JFrame {
 		}
 
 		cronometroPausado = false;
-		// Recargar imagen del nuevo jugador y reconstruir su tablero visual
 		cargarImagenEquipo();
 		reconstruirFlotaModelo();
 		actualizarInterfaz();
@@ -596,7 +559,7 @@ public class VentanaJuego extends JFrame {
 
 	private void rendirse() {
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Seguro que deseas rendirte?\n\nEl jugador " + oponente.getId() + " ganará la partida.",
+                "¿Seguro que deseas rendirte?\n\n" + obtenerNombreOponente() + " ganará la partida.",
                 "Confirmar Rendición", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm != JOptionPane.YES_OPTION)
@@ -604,16 +567,15 @@ public class VentanaJuego extends JFrame {
 
         juegoActivo = false;
         
-        
         estadisticasDAO.guardarPartida(
-            "Jugador " + oponente.getId(), 
+            obtenerNombreOponente(), 
             turnosTotales, 
             oponente.getBarcosHundidos()
         );
 
         EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
-        JOptionPane.showMessageDialog(this, "El JUGADOR " + jugadorActual.getId() + " se ha rendido.\n\n"
-                + "GANA EL JUGADOR " + oponente.getId(), "Fin de la partida", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, obtenerNombreActual() + " se ha rendido.\n\n"
+                + "GANA " + obtenerNombreOponente().toUpperCase(), "Fin de la partida", JOptionPane.INFORMATION_MESSAGE);
 
         if (musicaFondo != null) musicaFondo.detener();
 
@@ -621,12 +583,20 @@ public class VentanaJuego extends JFrame {
         new MainMenu().setVisible(true);
     }
 
+	// Métodos auxiliares para obtener nombres
+	private String obtenerNombreActual() {
+		return (jugadorActual.getId() == 1) ? nombreJ1 : nombreJ2;
+	}
+	
+	private String obtenerNombreOponente() {
+		return (oponente.getId() == 1) ? nombreJ1 : nombreJ2;
+	}
+
 	private void actualizarInterfaz() {
-		labelInfoJugador.setText("Turno del JUGADOR " + jugadorActual.getId());
+		// Mostrar el nombre real del jugador
+		labelInfoJugador.setText("Turno de: " + obtenerNombreActual());
 		labelAciertos.setText("Aciertos: " + jugadorActual.getAciertos());
 		labelFallos.setText("Fallos: " + jugadorActual.getFallos());
-
-		// Actualizar contador de barcos hundidos
 		labelBarcosHundidos.setText("Hundidos: " + jugadorActual.getBarcosHundidos());
 
 		botonSuperDisparo.setText("Super Disparo (" + jugadorActual.getSuperDisparos() + ")");
@@ -637,7 +607,6 @@ public class VentanaJuego extends JFrame {
 		botonMegaDisparo.setEnabled(jugadorActual.getMegaDisparos() > 0);
 		botonEscudo.setEnabled(jugadorActual.getEscudos() > 0);
 
-
 		// Tablero Ataque
 		boolean[][] disparos = jugadorActual.getTableroDisparos();
 		int[][] barcosEnemigos = oponente.getTableroPropio();
@@ -646,17 +615,16 @@ public class VentanaJuego extends JFrame {
 			for (int j = 0; j < 10; j++) {
 				if (disparos[i][j]) {
 					celdasAtaque[i][j].setEnabled(false);
-					if (barcosEnemigos[i][j] > 0) { // Si hay barco (ID > 0)
-						// Hundido = ROJO OSCURO, Tocado = NARANJA
+					if (barcosEnemigos[i][j] > 0) { 
 						if (oponente.getCasillasHundidas()[i][j]) {
-							celdasAtaque[i][j].setBackground(Color.RED); // Rojo oscuro
+							celdasAtaque[i][j].setBackground(Color.RED); 
 						} else {
-							celdasAtaque[i][j].setBackground(Color.ORANGE); // Naranja
+							celdasAtaque[i][j].setBackground(Color.ORANGE); 
 						}
 						celdasAtaque[i][j].setText("X");
 						celdasAtaque[i][j].setForeground(Color.BLACK);
 					} else {
-						celdasAtaque[i][j].setBackground(Color.CYAN); // Azul profundo (agua disparada)
+						celdasAtaque[i][j].setBackground(Color.CYAN); 
 						celdasAtaque[i][j].setText("O");
 						celdasAtaque[i][j].setForeground(Color.BLACK);
 					}
@@ -709,12 +677,10 @@ public class VentanaJuego extends JFrame {
 	private void perderPorTiempo(Jugador jugador) {
 		juegoActivo = false;
 		EfectosSonido.reproducir("resources/sounds/sonido_victoria.wav", -5.0f);
-		JOptionPane.showMessageDialog(this, "¡EL JUGADOR " + jugador.getId() + " SE QUEDÓ SIN TIEMPO!\n" + "El jugador "
-				+ oponente.getId() + " gana la partida.", "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, "¡" + obtenerNombreActual() + " SE QUEDÓ SIN TIEMPO!\n" + obtenerNombreOponente()
+				+ " gana la partida.", "DERROTA POR TIEMPO", JOptionPane.INFORMATION_MESSAGE);
 		
 		if (musicaFondo != null) musicaFondo.detener();
-
-		
 
 		dispose();
 		new MainMenu().setVisible(true);
@@ -768,23 +734,36 @@ public class VentanaJuego extends JFrame {
 		}
 	}
 
+	
 	private void cargarImagenEquipo() {
 		try {
 			String equipo = jugadorActual.getNombreEquipo();
 			if ("Submarine".equals(equipo))
 				equipo = "SubMarine";
-			String path = "resources/images/Ship/Ship" + equipo + "Hull.png";
-			File f = new File(path);
-			if (f.exists())
-				imagenBarcoPropio = ImageIO.read(f);
-			else
-				imagenBarcoPropio = ImageIO.read(getClass().getResource("/images/Ship/Ship" + equipo + "Hull.png"));
+			
+			
+			String path = "/resources/images/Ship/Ship" + equipo + "Hull.png";
+			
+			URL imgUrl = getClass().getResource(path);
+			
+			if (imgUrl != null) {
+				imagenBarcoPropio = ImageIO.read(imgUrl);
+			} else {
+				
+				File f = new File("resources/images/Ship/Ship" + equipo + "Hull.png");
+				if (f.exists()) {
+					imagenBarcoPropio = ImageIO.read(f);
+				} else {
+					System.err.println("No se encuentra imagen: " + path);
+					imagenBarcoPropio = null;
+				}
+			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			imagenBarcoPropio = null;
 		}
 	}
 
-	// Convertimos el int[][] a PiezaBarco[][] para poder pintar trozos
 	private void reconstruirFlotaModelo() {
 		int[][] ids = jugadorActual.getTableroPropio();
 		PiezaBarco[][] piezas = new PiezaBarco[10][10];
@@ -794,15 +773,12 @@ public class VentanaJuego extends JFrame {
 			for (int j = 0; j < 10; j++) {
 				int id = ids[i][j];
 				if (id > 0 && !visitado[i][j]) {
-					// Nuevo barco encontrado. Determinar tamaño y orientación.
 					boolean horiz = false;
 					int tam = 0;
 
-					// Suposición: ID único contiguo.
 					if (j + 1 < 10 && ids[i][j + 1] == id)
 						horiz = true;
 
-					// Contar tamaño
 					if (horiz) {
 						int c = j;
 						while (c < 10 && ids[i][c] == id) {
@@ -810,7 +786,6 @@ public class VentanaJuego extends JFrame {
 							c++;
 						}
 					} else {
-						// Verificar vertical
 						int r = i;
 						while (r < 10 && ids[r][j] == id) {
 							tam++;
@@ -818,12 +793,9 @@ public class VentanaJuego extends JFrame {
 						}
 					}
 
-					// Si tam es 1 (puede ser horizontal o vertical sin vecinos), asumimos horiz por
-					// defecto o checkeamos limite
 					if (tam == 0)
 						tam = 1;
 
-					// Rellenar PiezaBarco
 					for (int k = 0; k < tam; k++) {
 						int r = i + (horiz ? 0 : k);
 						int c = j + (horiz ? k : 0);
@@ -883,7 +855,7 @@ public class VentanaJuego extends JFrame {
 			this.p = (PiezaBarco) v;
 			this.row = r;
 			this.col = c;
-			setBackground(COLOR_AGUA); // Fondo base
+			setBackground(COLOR_AGUA); 
 			return this;
 		}
 
@@ -896,7 +868,6 @@ public class VentanaJuego extends JFrame {
 			boolean dañado = jugadorActual.getImpactosRecibidos()[row][col];
 
 			if (p != null) {
-				// Dibujar Barco
 				if (imagenBarcoPropio != null) {
 					if (p.horiz) {
 						g2.drawImage(imagenBarcoPropio, -(p.idx * w), 0, w * p.total, h, null);
@@ -914,9 +885,8 @@ public class VentanaJuego extends JFrame {
 				}
 			}
 
-			// Sobreponer daños (Si está dañado)
 			if (dañado) {
-				g2.setColor(new Color(255, 0, 0, 150)); // Rojo semitransparente
+				g2.setColor(new Color(255, 0, 0, 150)); 
 				g2.fillRect(0, 0, w, h);
 				g2.setColor(Color.RED);
 				g2.setStroke(new BasicStroke(3));
