@@ -34,7 +34,7 @@ public class EstadisticasDAO {
                     if (rs.next()) {
                         generatedId = rs.getInt(1);
                         
-                        // --- AQUÍ ESTÁ EL CAMBIO: SIN CLIMA ---
+                        
                         // Guardamos solo datos relevantes para cumplir el requisito de 2 tablas
                         guardarDetalle(generatedId, "Modo", "Clásico");
                         guardarDetalle(generatedId, "Eficiencia", (barcosHundidos * 20) + "%");
@@ -138,7 +138,7 @@ public class EstadisticasDAO {
         }
     }
     
-    // (Opcional) Método para obtener estadísticas generales
+    // Método para obtener estadísticas generales
     public ResumenEstadisticas obtenerResumen() {
         // Implementación simplificada o la que tenías antes
         return new ResumenEstadisticas(0,0,0); 

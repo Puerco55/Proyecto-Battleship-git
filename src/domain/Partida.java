@@ -2,7 +2,7 @@ package domain;
 
 public class Partida {
 
-    private int id; // NUEVO CAMPO NECESARIO PARA SQL
+    private int id; 
     private String fecha;
     private String ganador;
     private int turnos;

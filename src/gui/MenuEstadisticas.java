@@ -185,7 +185,7 @@ public class MenuEstadisticas extends JFrame {
         }
     }
 
-    // Estilos visuales (MODIFICADO PARA BLOQUEAR COLUMNAS)
+    // Estilos visuales 
     private void estilizarTabla(JTable table) {
         table.setOpaque(false);
         ((DefaultTableCellRenderer)table.getDefaultRenderer(Object.class)).setOpaque(false);

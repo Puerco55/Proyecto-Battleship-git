@@ -35,7 +35,7 @@ public class MenuOpciones extends JFrame {
     private static final long serialVersionUID = 1L;
     private EstadisticasDAO dao;
     
-    // COLORES: Tema Turquesa / Cian
+    // COLORES
     private final Color COLOR_BOTON = new Color(0, 137, 123); 
     private final Color COLOR_BOTON_HOVER = new Color(0, 77, 64);
     private final Color COLOR_TEXTO = Color.WHITE;

@@ -482,7 +482,7 @@ public class VentanaJuego extends JFrame {
 		superDisparoActivo = false;
 		megaDisparoActivo = false;
 
-		// REGLA: Los ataques especiales siempre acaban el turno, den o no.
+		// Los ataques especiales siempre acaban el turno, den o no.
 		yaDisparo = true;
 
 		verificarVictoria();
@@ -544,7 +544,7 @@ public class VentanaJuego extends JFrame {
 		// Solo verificamos si ha disparado si es un turno donde falló.
 		// Si ha acertado 3 veces y quiere pasar, puede hacerlo.
 		if (!yaDisparo) {
-			// Opción: Permitir pasar turno sin disparar si se arrepiente, o forzar disparo.
+			// Permitir pasar turno sin disparar si se arrepiente, o forzar disparo.
 			// Dejamos la confirmación:
 			int confirm = JOptionPane.showConfirmDialog(this, "¿Pasar sin atacar/fallar?", "Confirmar",
 					JOptionPane.YES_NO_OPTION);

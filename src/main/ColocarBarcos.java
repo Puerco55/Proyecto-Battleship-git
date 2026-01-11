@@ -98,7 +98,7 @@ public class ColocarBarcos extends JFrame {
 		tabla.setCellSelectionEnabled(true);
 		tabla.setShowGrid(true);
 		tabla.setGridColor(new Color(255, 255, 255, 50));
-		// Truco visual: Pinta el fondo sobrante (si lo hubiera por error de pantalla) del color del agua
+		// Pinta el fondo sobrante (si lo hubiera por error de pantalla) del color del agua
 		tabla.setFillsViewportHeight(true); 
 		tabla.setBackground(new Color(0, 105, 148)); 
 		tabla.setDefaultRenderer(Object.class, new BarcoRenderer());

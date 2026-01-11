@@ -84,11 +84,11 @@ public class MainMenu extends JFrame {
         agregarBoton(buttonContainer, exitButton);
         buttonContainer.add(Box.createVerticalGlue());
 
-        // --- LISTENERS ACTUALIZADOS ---
+        // LISTENERS
         
-        // AHORA ABRE SELECCIÓN DE PERFIL
+        // Seleccion de perfil
         playButton.addActionListener(e -> {
-            new VentanaComoJugar().setVisible(true); // <--- CAMBIO IMPORTANTE
+            new VentanaComoJugar().setVisible(true); 
             dispose(); 
         });
 
